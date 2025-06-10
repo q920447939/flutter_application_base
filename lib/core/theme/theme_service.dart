@@ -1,19 +1,19 @@
-/// 主题服务
+/// 增强版主题服务
 ///
-/// 提供主题管理功能，包括：
-/// - 主题切换
-/// - 主题持久化
-/// - 动态主题
+/// 提供完整的主题管理功能，包括：
+/// - 主题初始化与配置
+/// - 动态主题切换
+/// - 主题持久化存储
 /// - 品牌主题定制
+/// - 远程主题配置同步
+/// - 主题动画与过渡效果
 library;
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../storage/storage_service.dart';
 import '../../ui/design_system/tokens/index.dart';
-
-/// 主题模式枚举
-enum AppThemeMode { light, dark, system }
+import 'models/theme_config.dart';
 
 /// 主题服务类
 class ThemeService extends GetxController {
@@ -38,6 +38,10 @@ class ThemeService extends GetxController {
   /// 主题颜色
   final Rx<Color> _primaryColor = Colors.blue.obs;
   Color get primaryColor => _primaryColor.value;
+
+  /// 当前主题配置
+  final Rx<ThemeConfig?> _currentThemeConfig = Rx<ThemeConfig?>(null);
+  ThemeConfig? get currentThemeConfig => _currentThemeConfig.value;
 
   ThemeService._internal();
 
@@ -75,7 +79,7 @@ class ThemeService extends GetxController {
         _primaryColor.value = Color(colorValue);
       }
     } catch (e) {
-      print('加载主题设置失败: $e');
+      debugPrint('加载主题设置失败: $e');
     }
   }
 
@@ -277,7 +281,35 @@ class ThemeService extends GetxController {
   Future<void> resetTheme() async {
     _themeMode.value = AppThemeMode.system;
     _primaryColor.value = Colors.blue;
+    _currentThemeConfig.value = null;
     _updateTheme();
     await _saveThemeSettings();
+  }
+
+  /// 使用主题配置初始化
+  Future<void> initializeWithConfig(ThemeConfig config) async {
+    _currentThemeConfig.value = config;
+    _themeMode.value = config.mode;
+    _primaryColor.value = config.primaryColor.color;
+
+    // 如果有辅助色配置，也可以设置
+    if (config.secondaryColor != null) {
+      // 这里可以扩展支持辅助色
+    }
+
+    _updateTheme();
+    await _saveThemeSettings();
+  }
+
+  /// 应用主题配置
+  Future<void> applyThemeConfig(ThemeConfig config) async {
+    await initializeWithConfig(config);
+  }
+
+  /// 处理系统主题变化
+  void handleSystemThemeChange() {
+    if (_themeMode.value == AppThemeMode.system) {
+      _updateTheme();
+    }
   }
 }

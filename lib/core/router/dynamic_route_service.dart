@@ -23,8 +23,10 @@ class DynamicRouteService extends GetxService {
   static const String _routeVersionCacheKey = 'dynamic_route_version';
 
   /// 当前路由配置
-  final Rx<RouteConfigResponse?> _currentConfig = Rx<RouteConfigResponse?>(null);
-  
+  final Rx<RouteConfigResponse?> _currentConfig = Rx<RouteConfigResponse?>(
+    null,
+  );
+
   /// 路由配置获取状态
   final RxBool _isLoading = false.obs;
   final RxString _error = ''.obs;
@@ -38,7 +40,7 @@ class DynamicRouteService extends GetxService {
   @override
   Future<void> onInit() async {
     super.onInit();
-    await _loadCachedConfig();
+    //await _loadCachedConfig();
   }
 
   /// 获取路由配置
@@ -55,12 +57,12 @@ class DynamicRouteService extends GetxService {
 
       // 从服务器获取配置
       final response = await NetworkService.instance.get('/api/config/routes');
-      
+
       if (response.statusCode == 200) {
         final configResponse = RouteConfigResponse.fromJson(response.data);
         await _saveConfig(configResponse);
         _currentConfig.value = configResponse;
-        
+
         debugPrint('路由配置更新成功，版本: ${configResponse.version}');
         return true;
       } else {
@@ -103,19 +105,24 @@ class DynamicRouteService extends GetxService {
     if (route == null || route.permissions == null) {
       return true;
     }
-    
-    return route.permissions!.every((permission) => 
-        userPermissions.contains(permission));
+
+    return route.permissions!.every(
+      (permission) => userPermissions.contains(permission),
+    );
   }
 
   /// 检查配置是否为最新版本
   Future<bool> _isConfigUpToDate() async {
     try {
-      final cachedVersion = await StorageService.instance.getString(_routeVersionCacheKey);
+      final cachedVersion = await StorageService.instance.getString(
+        _routeVersionCacheKey,
+      );
       if (cachedVersion == null) return false;
 
       // 向服务器查询最新版本
-      final response = await NetworkService.instance.get('/api/config/routes/version');
+      final response = await NetworkService.instance.get(
+        '/api/config/routes/version',
+      );
       if (response.statusCode == 200) {
         final serverVersion = response.data['version'] as String;
         return cachedVersion == serverVersion;
@@ -130,7 +137,9 @@ class DynamicRouteService extends GetxService {
   /// 加载缓存的配置
   Future<void> _loadCachedConfig() async {
     try {
-      final cachedConfigJson = await StorageService.instance.getString(_routeConfigCacheKey);
+      final cachedConfigJson = await StorageService.instance.getString(
+        _routeConfigCacheKey,
+      );
       if (cachedConfigJson != null) {
         final configMap = jsonDecode(cachedConfigJson) as Map<String, dynamic>;
         _currentConfig.value = RouteConfigResponse.fromJson(configMap);
@@ -146,7 +155,10 @@ class DynamicRouteService extends GetxService {
     try {
       final configJson = jsonEncode(config.toJson());
       await StorageService.instance.setString(_routeConfigCacheKey, configJson);
-      await StorageService.instance.setString(_routeVersionCacheKey, config.version);
+      await StorageService.instance.setString(
+        _routeVersionCacheKey,
+        config.version,
+      );
       debugPrint('路由配置缓存保存成功');
     } catch (e) {
       debugPrint('保存路由配置缓存失败: $e');
@@ -176,7 +188,7 @@ class DynamicRouteService extends GetxService {
     final allRoutes = routes;
     final enabledRoutes = getEnabledRoutes();
     final authRequiredRoutes = getAuthRequiredRoutes();
-    
+
     final typeStats = <String, int>{};
     for (final route in allRoutes) {
       final type = route.pageType.toString().split('.').last;
@@ -222,11 +234,13 @@ class DynamicRouteService extends GetxService {
       }
 
       // 检查页面配置
-      if (route.pageType == PageType.dynamic && route.pageConfig?.layout == null) {
+      if (route.pageType == PageType.dynamic &&
+          route.pageConfig?.layout == null) {
         errors.add('动态页面必须配置layout: ${route.path}');
       }
 
-      if (route.pageType == PageType.webview && route.pageConfig?.webView == null) {
+      if (route.pageType == PageType.webview &&
+          route.pageConfig?.webView == null) {
         errors.add('WebView页面必须配置webView: ${route.path}');
       }
 

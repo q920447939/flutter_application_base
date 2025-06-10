@@ -18,6 +18,8 @@ import '../localization/localization_service.dart';
 import '../../features/auth/services/auth_service.dart';
 import '../storage/storage_service.dart';
 import '../router/dynamic_route_service.dart';
+import '../network/network_initializer.dart';
+import '../theme/theme_initializer.dart';
 
 /// 应用初始化器
 class AppInitializer {
@@ -35,6 +37,9 @@ class AppInitializer {
     // 初始化依赖注入
     await _initializeDependencies();
 
+    // 初始化存储服务（必须在认证服务之前）
+    await StorageService.instance.initialize();
+
     // 初始化网络配置
     await _initializeNetwork();
 
@@ -49,9 +54,6 @@ class AppInitializer {
 
     // 初始化国际化
     await _initializeLocalization();
-
-    // 初始化存储服务（必须在认证服务之前）
-    await StorageService.instance.initialize();
 
     // 初始化认证服务
     await _initializeAuth();
@@ -80,12 +82,31 @@ class AppInitializer {
 
   /// 初始化网络配置
   static Future<void> _initializeNetwork() async {
-    // 网络配置初始化
+    // 使用网络初始化器进行完整的网络层初始化
+    final result = await NetworkInitializer.instance.initialize();
+
+    if (!result.success) {
+      debugPrint('网络初始化失败: ${result.error}');
+      // 注意：这里不抛出异常，因为应用可能需要在离线模式下运行
+    } else {
+      debugPrint('网络初始化成功，耗时: ${result.duration.inMilliseconds}ms');
+    }
   }
 
   /// 初始化主题配置
   static Future<void> _initializeTheme() async {
-    // 主题配置初始化
+    // 使用主题初始化器进行完整的主题系统初始化
+    final result = await ThemeInitializer.instance.initialize();
+
+    if (!result.success) {
+      debugPrint('主题初始化失败: ${result.error}');
+      // 注意：这里不抛出异常，因为已经有降级方案
+    } else {
+      debugPrint('主题初始化成功，耗时: ${result.duration.inMilliseconds}ms');
+      if (result.appliedTheme != null) {
+        debugPrint('已应用主题: ${result.appliedTheme!.name}');
+      }
+    }
   }
 
   /// 初始化权限

@@ -6,19 +6,27 @@
 /// - 请求拦截器
 /// - 响应拦截器
 /// - 网络状态监听
+/// - 动态网络配置管理
 library;
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:get/get.dart' as getx;
 import '../app/app_config.dart';
 import '../security/certificate_pinning_service.dart';
 import '../storage/storage_service.dart';
+import 'network_config_manager.dart';
+import 'network_initializer.dart';
+import 'network_strategy_factory.dart';
 
 /// 网络服务类
 class NetworkService {
   late final Dio _dio;
   static NetworkService? _instance;
+
+  /// 是否已初始化
+  bool _isInitialized = false;
 
   NetworkService._internal() {
     _dio = Dio();
@@ -31,27 +39,52 @@ class NetworkService {
     return _instance!;
   }
 
+  /// 是否已初始化
+  bool get isInitialized => _isInitialized;
+
   /// 配置Dio
   void _setupDio() {
-    final config = AppConfig.current;
+    _updateDioConfiguration();
+    _addInterceptors();
+    _configureCertificatePinning();
+    _isInitialized = true;
+  }
+
+  /// 更新Dio配置（支持动态配置）
+  void _updateDioConfiguration() {
+    final configManager = NetworkConfigManager.instance;
+
+    // 从配置管理器获取配置
+    final baseUrl =
+        configManager.getConfigValue<String>('base_url') ??
+        AppConfig.current.apiBaseUrl;
+    final connectTimeout =
+        configManager.getConfigValue<int>('connect_timeout') ??
+        AppConfig.current.networkTimeout.inMilliseconds;
+    final receiveTimeout =
+        configManager.getConfigValue<int>('receive_timeout') ??
+        AppConfig.current.networkTimeout.inMilliseconds;
+    final sendTimeout =
+        configManager.getConfigValue<int>('send_timeout') ??
+        AppConfig.current.networkTimeout.inMilliseconds;
 
     // 基础配置
     _dio.options = BaseOptions(
-      baseUrl: config.apiBaseUrl,
-      connectTimeout: config.networkTimeout,
-      receiveTimeout: config.networkTimeout,
-      sendTimeout: config.networkTimeout,
+      baseUrl: baseUrl,
+      connectTimeout: Duration(milliseconds: connectTimeout),
+      receiveTimeout: Duration(milliseconds: receiveTimeout),
+      sendTimeout: Duration(milliseconds: sendTimeout),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
     );
+  }
 
-    // 添加拦截器
-    _addInterceptors();
-
-    // 配置证书绑定
-    _configureCertificatePinning();
+  /// 重新配置网络服务（支持配置热更新）
+  void reconfigure() {
+    _updateDioConfiguration();
+    debugPrint('网络服务配置已更新');
   }
 
   /// 添加拦截器
@@ -165,22 +198,29 @@ class NetworkService {
     }
   }
 
-  /// GET请求
+  /// GET请求（集成策略）
   Future<Response<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
   }) async {
-    return await _dio.get<T>(
-      path,
-      queryParameters: queryParameters,
-      options: options,
-      cancelToken: cancelToken,
+    return await _executeWithStrategies<T>(
+      () => _dio.get<T>(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      ),
+      RequestOptions(
+        path: path,
+        method: 'GET',
+        queryParameters: queryParameters,
+      ),
     );
   }
 
-  /// POST请求
+  /// POST请求（集成策略）
   Future<Response<T>> post<T>(
     String path, {
     dynamic data,
@@ -188,13 +228,38 @@ class NetworkService {
     Options? options,
     CancelToken? cancelToken,
   }) async {
-    return await _dio.post<T>(
-      path,
-      data: data,
-      queryParameters: queryParameters,
-      options: options,
-      cancelToken: cancelToken,
+    return await _executeWithStrategies<T>(
+      () => _dio.post<T>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      ),
+      RequestOptions(
+        path: path,
+        method: 'POST',
+        data: data,
+        queryParameters: queryParameters,
+      ),
     );
+  }
+
+  /// 执行请求并应用策略
+  Future<Response<T>> _executeWithStrategies<T>(
+    Future<Response<T>> Function() request,
+    RequestOptions options,
+  ) async {
+    // 如果策略工厂已初始化，应用策略
+    if (NetworkStrategyFactory.instance.isInitialized) {
+      return await NetworkStrategyFactory.instance.applyStrategies<T>(
+        options,
+        request,
+      );
+    }
+
+    // 否则直接执行请求
+    return await request();
   }
 
   /// PUT请求
