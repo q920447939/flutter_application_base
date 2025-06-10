@@ -1,5 +1,5 @@
 /// 权限引导页面
-/// 
+///
 /// 提供友好的权限引导界面，包括：
 /// - 权限说明展示
 /// - 批量权限请求
@@ -46,7 +46,9 @@ class _PermissionGuidePageState extends State<PermissionGuidePage> {
 
   /// 检查初始权限状态
   Future<void> _checkInitialPermissions() async {
-    final results = await PermissionService.instance.checkPermissions(widget.requiredPermissions);
+    final results = await PermissionService.instance.checkPermissions(
+      widget.requiredPermissions,
+    );
     setState(() {
       _permissionResults.addAll(results);
     });
@@ -128,14 +130,17 @@ class _PermissionGuidePageState extends State<PermissionGuidePage> {
   IconData _getPermissionTypeIcon(AppPermission permission) {
     switch (permission) {
       case AppPermission.camera:
+      case AppPermission.webCamera:
         return Icons.camera_alt;
       case AppPermission.microphone:
+      case AppPermission.webMicrophone:
         return Icons.mic;
       case AppPermission.photos:
         return Icons.photo_library;
       case AppPermission.location:
       case AppPermission.locationAlways:
       case AppPermission.locationWhenInUse:
+      case AppPermission.webLocation:
         return Icons.location_on;
       case AppPermission.storage:
         return Icons.storage;
@@ -146,18 +151,27 @@ class _PermissionGuidePageState extends State<PermissionGuidePage> {
       case AppPermission.sms:
         return Icons.sms;
       case AppPermission.notification:
+      case AppPermission.webNotification:
         return Icons.notifications;
       case AppPermission.bluetooth:
       case AppPermission.bluetoothScan:
       case AppPermission.bluetoothAdvertise:
       case AppPermission.bluetoothConnect:
         return Icons.bluetooth;
+      // 桌面端特有权限
+      case AppPermission.desktopFileSystem:
+        return Icons.folder;
+      case AppPermission.desktopSystemTray:
+        return Icons.apps;
+      case AppPermission.desktopAutoStart:
+        return Icons.power_settings_new;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final allGranted = _permissionResults.values.isNotEmpty &&
+    final allGranted =
+        _permissionResults.values.isNotEmpty &&
         _permissionResults.values.every((result) => result.isGranted);
 
     return Scaffold(
@@ -184,15 +198,17 @@ class _PermissionGuidePageState extends State<PermissionGuidePage> {
                 itemBuilder: (context, index) {
                   final permission = widget.requiredPermissions[index];
                   final result = _permissionResults[permission];
-                  
+
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.primaryContainer,
                         child: Icon(
                           _getPermissionTypeIcon(permission),
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          color:
+                              Theme.of(context).colorScheme.onPrimaryContainer,
                         ),
                       ),
                       title: Text(permission.name),
@@ -209,7 +225,8 @@ class _PermissionGuidePageState extends State<PermissionGuidePage> {
                           if (result != null && !result.isGranted) ...[
                             const SizedBox(width: 8),
                             IconButton(
-                              onPressed: () => _requestSinglePermission(permission),
+                              onPressed:
+                                  () => _requestSinglePermission(permission),
                               icon: const Icon(Icons.refresh),
                               tooltip: '重新请求',
                             ),
@@ -236,18 +253,20 @@ class _PermissionGuidePageState extends State<PermissionGuidePage> {
                 if (widget.allowSkip && !allGranted) const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: allGranted
-                        ? widget.onCompleted
-                        : _isRequesting
+                    onPressed:
+                        allGranted
+                            ? widget.onCompleted
+                            : _isRequesting
                             ? null
                             : _requestAllPermissions,
-                    child: _isRequesting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(allGranted ? '完成' : '授权'),
+                    child:
+                        _isRequesting
+                            ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                            : Text(allGranted ? '完成' : '授权'),
                   ),
                 ),
               ],
@@ -261,7 +280,8 @@ class _PermissionGuidePageState extends State<PermissionGuidePage> {
 
 /// 权限引导控制器
 class PermissionGuideController extends GetxController {
-  final RxMap<AppPermission, PermissionResult> permissionResults = <AppPermission, PermissionResult>{}.obs;
+  final RxMap<AppPermission, PermissionResult> permissionResults =
+      <AppPermission, PermissionResult>{}.obs;
   final RxBool isRequesting = false.obs;
 
   /// 显示权限引导页面
@@ -285,13 +305,18 @@ class PermissionGuideController extends GetxController {
   }
 
   /// 检查并请求必要权限
-  static Future<bool> checkAndRequestPermissions(List<AppPermission> permissions) async {
+  static Future<bool> checkAndRequestPermissions(
+    List<AppPermission> permissions,
+  ) async {
     // 先检查当前权限状态
-    final results = await PermissionService.instance.checkPermissions(permissions);
-    final deniedPermissions = results.entries
-        .where((entry) => !entry.value.isGranted)
-        .map((entry) => entry.key)
-        .toList();
+    final results = await PermissionService.instance.checkPermissions(
+      permissions,
+    );
+    final deniedPermissions =
+        results.entries
+            .where((entry) => !entry.value.isGranted)
+            .map((entry) => entry.key)
+            .toList();
 
     // 如果所有权限都已授权，直接返回true
     if (deniedPermissions.isEmpty) {

@@ -1,5 +1,5 @@
 /// 权限管理服务
-/// 
+///
 /// 提供统一的权限管理接口，包括：
 /// - 权限状态检查
 /// - 权限请求
@@ -8,8 +8,31 @@
 library;
 
 import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart'
+    as permission_handler;
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+
+/// 平台类型枚举
+enum PlatformType {
+  mobile, // 移动端 (iOS/Android)
+  desktop, // 桌面端 (Windows/macOS/Linux)
+  web, // Web端
+}
+
+/// 权限重要性级别
+enum PermissionPriority {
+  required, // 必要权限 - 没有此权限应用无法正常运行
+  optional, // 可选权限 - 没有此权限应用可以降级运行
+}
+
+/// 权限触发场景
+enum PermissionTrigger {
+  appLaunch, // 应用启动时
+  pageEnter, // 进入页面时
+  actionTrigger, // 触发特定操作时
+  background, // 后台运行时
+}
 
 /// 权限类型枚举
 enum AppPermission {
@@ -28,6 +51,15 @@ enum AppPermission {
   bluetoothScan,
   bluetoothAdvertise,
   bluetoothConnect,
+  // Web特有权限
+  webCamera,
+  webMicrophone,
+  webNotification,
+  webLocation,
+  // 桌面端特有权限
+  desktopFileSystem,
+  desktopSystemTray,
+  desktopAutoStart,
 }
 
 /// 权限状态扩展
@@ -36,12 +68,15 @@ extension AppPermissionExtension on AppPermission {
   Permission get systemPermission {
     switch (this) {
       case AppPermission.camera:
+      case AppPermission.webCamera:
         return Permission.camera;
       case AppPermission.microphone:
+      case AppPermission.webMicrophone:
         return Permission.microphone;
       case AppPermission.photos:
         return Permission.photos;
       case AppPermission.location:
+      case AppPermission.webLocation:
         return Permission.location;
       case AppPermission.locationAlways:
         return Permission.locationAlways;
@@ -56,6 +91,7 @@ extension AppPermissionExtension on AppPermission {
       case AppPermission.sms:
         return Permission.sms;
       case AppPermission.notification:
+      case AppPermission.webNotification:
         return Permission.notification;
       case AppPermission.bluetooth:
         return Permission.bluetooth;
@@ -65,6 +101,12 @@ extension AppPermissionExtension on AppPermission {
         return Permission.bluetoothAdvertise;
       case AppPermission.bluetoothConnect:
         return Permission.bluetoothConnect;
+      // 桌面端权限暂时映射到存储权限，实际实现时需要平台特定处理
+      case AppPermission.desktopFileSystem:
+        return Permission.storage;
+      case AppPermission.desktopSystemTray:
+      case AppPermission.desktopAutoStart:
+        return Permission.systemAlertWindow;
     }
   }
 
@@ -101,6 +143,22 @@ extension AppPermissionExtension on AppPermission {
         return '蓝牙广播';
       case AppPermission.bluetoothConnect:
         return '蓝牙连接';
+      // Web特有权限
+      case AppPermission.webCamera:
+        return 'Web相机';
+      case AppPermission.webMicrophone:
+        return 'Web麦克风';
+      case AppPermission.webNotification:
+        return 'Web通知';
+      case AppPermission.webLocation:
+        return 'Web位置';
+      // 桌面端特有权限
+      case AppPermission.desktopFileSystem:
+        return '文件系统访问';
+      case AppPermission.desktopSystemTray:
+        return '系统托盘';
+      case AppPermission.desktopAutoStart:
+        return '开机自启动';
     }
   }
 
@@ -137,6 +195,22 @@ extension AppPermissionExtension on AppPermission {
         return '用于蓝牙设备广播';
       case AppPermission.bluetoothConnect:
         return '用于连接蓝牙设备';
+      // Web特有权限
+      case AppPermission.webCamera:
+        return '用于在浏览器中访问摄像头';
+      case AppPermission.webMicrophone:
+        return '用于在浏览器中访问麦克风';
+      case AppPermission.webNotification:
+        return '用于在浏览器中显示通知';
+      case AppPermission.webLocation:
+        return '用于在浏览器中获取位置信息';
+      // 桌面端特有权限
+      case AppPermission.desktopFileSystem:
+        return '用于访问本地文件系统';
+      case AppPermission.desktopSystemTray:
+        return '用于在系统托盘显示图标';
+      case AppPermission.desktopAutoStart:
+        return '用于开机自动启动应用';
     }
   }
 }
@@ -157,7 +231,10 @@ class PermissionResult {
     required this.isPermanentlyDenied,
   });
 
-  factory PermissionResult.fromStatus(AppPermission permission, PermissionStatus status) {
+  factory PermissionResult.fromStatus(
+    AppPermission permission,
+    PermissionStatus status,
+  ) {
     return PermissionResult(
       permission: permission,
       status: status,
@@ -171,6 +248,7 @@ class PermissionResult {
 /// 权限服务类
 class PermissionService {
   static PermissionService? _instance;
+  bool _isInitialized = false;
 
   PermissionService._internal();
 
@@ -178,6 +256,22 @@ class PermissionService {
   static PermissionService get instance {
     _instance ??= PermissionService._internal();
     return _instance!;
+  }
+
+  /// 是否已初始化
+  bool get isInitialized => _isInitialized;
+
+  /// 初始化权限服务
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    try {
+      // 这里可以添加权限服务的初始化逻辑
+      _isInitialized = true;
+    } catch (e) {
+      debugPrint('权限服务初始化失败: $e');
+      rethrow;
+    }
   }
 
   /// 检查单个权限状态
@@ -191,12 +285,12 @@ class PermissionService {
     List<AppPermission> permissions,
   ) async {
     final results = <AppPermission, PermissionResult>{};
-    
+
     for (final permission in permissions) {
       final result = await checkPermission(permission);
       results[permission] = result;
     }
-    
+
     return results;
   }
 
@@ -207,12 +301,12 @@ class PermissionService {
   }) async {
     // 先检查当前状态
     final currentResult = await checkPermission(permission);
-    
+
     // 如果已经授权，直接返回
     if (currentResult.isGranted) {
       return currentResult;
     }
-    
+
     // 如果被永久拒绝，引导用户到设置页面
     if (currentResult.isPermanentlyDenied) {
       if (showRationale) {
@@ -220,7 +314,7 @@ class PermissionService {
       }
       return currentResult;
     }
-    
+
     // 如果需要显示权限说明
     if (showRationale && currentResult.isDenied) {
       final shouldRequest = await _showPermissionRationaleDialog(permission);
@@ -228,7 +322,7 @@ class PermissionService {
         return currentResult;
       }
     }
-    
+
     // 请求权限
     final status = await permission.systemPermission.request();
     return PermissionResult.fromStatus(permission, status);
@@ -240,12 +334,15 @@ class PermissionService {
     bool showRationale = true,
   }) async {
     final results = <AppPermission, PermissionResult>{};
-    
+
     for (final permission in permissions) {
-      final result = await requestPermission(permission, showRationale: showRationale);
+      final result = await requestPermission(
+        permission,
+        showRationale: showRationale,
+      );
       results[permission] = result;
     }
-    
+
     return results;
   }
 
@@ -253,16 +350,17 @@ class PermissionService {
   Future<Map<AppPermission, PermissionResult>> requestPermissionsBatch(
     List<AppPermission> permissions,
   ) async {
-    final systemPermissions = permissions.map((p) => p.systemPermission).toList();
+    final systemPermissions =
+        permissions.map((p) => p.systemPermission).toList();
     final statusMap = await systemPermissions.request();
-    
+
     final results = <AppPermission, PermissionResult>{};
     for (int i = 0; i < permissions.length; i++) {
       final permission = permissions[i];
       final status = statusMap[systemPermissions[i]] ?? PermissionStatus.denied;
       results[permission] = PermissionResult.fromStatus(permission, status);
     }
-    
+
     return results;
   }
 
@@ -294,10 +392,7 @@ class PermissionService {
         title: Text('${permission.name}权限被拒绝'),
         content: Text('${permission.description}\n\n请在设置中手动开启权限。'),
         actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('取消'),
-          ),
+          TextButton(onPressed: () => Get.back(), child: const Text('取消')),
           TextButton(
             onPressed: () {
               Get.back();
@@ -312,11 +407,18 @@ class PermissionService {
 
   /// 打开应用设置页面
   Future<bool> openAppSettings() async {
-    return await openAppSettings();
+    try {
+      return await permission_handler.openAppSettings();
+    } catch (e) {
+      debugPrint('打开应用设置失败: $e');
+      return false;
+    }
   }
 
   /// 检查是否有权限被永久拒绝
-  Future<bool> hasPermissionsPermanentlyDenied(List<AppPermission> permissions) async {
+  Future<bool> hasPermissionsPermanentlyDenied(
+    List<AppPermission> permissions,
+  ) async {
     for (final permission in permissions) {
       final result = await checkPermission(permission);
       if (result.isPermanentlyDenied) {
@@ -327,30 +429,34 @@ class PermissionService {
   }
 
   /// 获取被拒绝的权限列表
-  Future<List<AppPermission>> getDeniedPermissions(List<AppPermission> permissions) async {
+  Future<List<AppPermission>> getDeniedPermissions(
+    List<AppPermission> permissions,
+  ) async {
     final deniedPermissions = <AppPermission>[];
-    
+
     for (final permission in permissions) {
       final result = await checkPermission(permission);
       if (result.isDenied || result.isPermanentlyDenied) {
         deniedPermissions.add(permission);
       }
     }
-    
+
     return deniedPermissions;
   }
 
   /// 获取已授权的权限列表
-  Future<List<AppPermission>> getGrantedPermissions(List<AppPermission> permissions) async {
+  Future<List<AppPermission>> getGrantedPermissions(
+    List<AppPermission> permissions,
+  ) async {
     final grantedPermissions = <AppPermission>[];
-    
+
     for (final permission in permissions) {
       final result = await checkPermission(permission);
       if (result.isGranted) {
         grantedPermissions.add(permission);
       }
     }
-    
+
     return grantedPermissions;
   }
 }

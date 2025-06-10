@@ -162,10 +162,10 @@ class ThemeService extends GetxController {
         border: AppBorders.inputBorder,
         contentPadding: AppSpacing.inputPadding,
       ),
-      cardTheme: CardTheme(
+      /*cardTheme: CardTheme(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: AppBorders.borderRadiusXl),
-      ),
+      ),*/
     );
   }
 
@@ -190,10 +190,10 @@ class ThemeService extends GetxController {
         border: AppBorders.inputBorder,
         contentPadding: AppSpacing.inputPadding,
       ),
-      cardTheme: CardTheme(
+      /*cardTheme: CardTheme(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: AppBorders.borderRadiusXl),
-      ),
+      ),*/
     );
   }
 

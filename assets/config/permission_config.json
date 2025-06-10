@@ -1,0 +1,205 @@
+{
+  "version": "1.0.0",
+  "description": "权限配置文件 - 定义应用所需的权限及其策略",
+  "permissions": [
+    {
+      "permission": "storage",
+      "priority": "required",
+      "triggers": ["appLaunch"],
+      "supportedPlatforms": ["mobile"],
+      "customTitle": "存储权限",
+      "customDescription": "用于保存应用数据和用户文件",
+      "allowSkip": false,
+      "deniedStrategy": "exitApp",
+      "maxRetryCount": 3,
+      "relatedRoutes": []
+    },
+    {
+      "permission": "camera",
+      "priority": "optional",
+      "triggers": ["actionTrigger"],
+      "supportedPlatforms": ["mobile"],
+      "customTitle": "相机权限",
+      "customDescription": "用于拍照和扫描二维码",
+      "allowSkip": true,
+      "deniedStrategy": "disableFeature",
+      "maxRetryCount": 2,
+      "relatedRoutes": ["/camera", "/qr_scan"]
+    },
+    {
+      "permission": "location",
+      "priority": "optional",
+      "triggers": ["pageEnter", "actionTrigger"],
+      "supportedPlatforms": ["mobile"],
+      "customTitle": "位置权限",
+      "customDescription": "用于提供基于位置的服务和导航",
+      "allowSkip": true,
+      "deniedStrategy": "showDialog",
+      "maxRetryCount": 2,
+      "relatedRoutes": ["/map", "/nearby"]
+    },
+    {
+      "permission": "microphone",
+      "priority": "optional",
+      "triggers": ["actionTrigger"],
+      "supportedPlatforms": ["mobile"],
+      "customTitle": "麦克风权限",
+      "customDescription": "用于语音录制和语音通话",
+      "allowSkip": true,
+      "deniedStrategy": "disableFeature",
+      "maxRetryCount": 2,
+      "relatedRoutes": ["/voice_record", "/call"]
+    },
+    {
+      "permission": "notification",
+      "priority": "optional",
+      "triggers": ["appLaunch"],
+      "supportedPlatforms": ["mobile"],
+      "customTitle": "通知权限",
+      "customDescription": "用于接收重要消息和提醒",
+      "allowSkip": true,
+      "deniedStrategy": "showSnackbar",
+      "maxRetryCount": 1,
+      "relatedRoutes": []
+    },
+    {
+      "permission": "contacts",
+      "priority": "optional",
+      "triggers": ["actionTrigger"],
+      "supportedPlatforms": ["mobile"],
+      "customTitle": "通讯录权限",
+      "customDescription": "用于快速添加联系人和分享",
+      "allowSkip": true,
+      "deniedStrategy": "disableFeature",
+      "maxRetryCount": 1,
+      "relatedRoutes": ["/contacts", "/share"]
+    },
+    {
+      "permission": "photos",
+      "priority": "optional",
+      "triggers": ["actionTrigger"],
+      "supportedPlatforms": ["mobile"],
+      "customTitle": "相册权限",
+      "customDescription": "用于选择和保存图片",
+      "allowSkip": true,
+      "deniedStrategy": "disableFeature",
+      "maxRetryCount": 2,
+      "relatedRoutes": ["/gallery", "/profile"]
+    },
+    {
+      "permission": "webCamera",
+      "priority": "optional",
+      "triggers": ["actionTrigger"],
+      "supportedPlatforms": ["web"],
+      "customTitle": "摄像头权限",
+      "customDescription": "用于在浏览器中拍照和视频通话",
+      "allowSkip": true,
+      "deniedStrategy": "disableFeature",
+      "maxRetryCount": 2,
+      "relatedRoutes": ["/web_camera", "/video_call"]
+    },
+    {
+      "permission": "webMicrophone",
+      "priority": "optional",
+      "triggers": ["actionTrigger"],
+      "supportedPlatforms": ["web"],
+      "customTitle": "麦克风权限",
+      "customDescription": "用于在浏览器中录音和语音通话",
+      "allowSkip": true,
+      "deniedStrategy": "disableFeature",
+      "maxRetryCount": 2,
+      "relatedRoutes": ["/web_audio", "/voice_call"]
+    },
+    {
+      "permission": "webLocation",
+      "priority": "optional",
+      "triggers": ["pageEnter"],
+      "supportedPlatforms": ["web"],
+      "customTitle": "位置权限",
+      "customDescription": "用于在浏览器中获取您的位置信息",
+      "allowSkip": true,
+      "deniedStrategy": "showDialog",
+      "maxRetryCount": 1,
+      "relatedRoutes": ["/web_map"]
+    },
+    {
+      "permission": "webNotification",
+      "priority": "optional",
+      "triggers": ["appLaunch"],
+      "supportedPlatforms": ["web"],
+      "customTitle": "通知权限",
+      "customDescription": "用于在浏览器中显示桌面通知",
+      "allowSkip": true,
+      "deniedStrategy": "showSnackbar",
+      "maxRetryCount": 1,
+      "relatedRoutes": []
+    },
+    {
+      "permission": "desktopFileSystem",
+      "priority": "required",
+      "triggers": ["appLaunch"],
+      "supportedPlatforms": ["desktop"],
+      "customTitle": "文件系统权限",
+      "customDescription": "用于读取和保存本地文件",
+      "allowSkip": false,
+      "deniedStrategy": "exitApp",
+      "maxRetryCount": 3,
+      "relatedRoutes": []
+    },
+    {
+      "permission": "desktopSystemTray",
+      "priority": "optional",
+      "triggers": ["appLaunch"],
+      "supportedPlatforms": ["desktop"],
+      "customTitle": "系统托盘权限",
+      "customDescription": "用于在系统托盘显示应用图标",
+      "allowSkip": true,
+      "deniedStrategy": "disableFeature",
+      "maxRetryCount": 1,
+      "relatedRoutes": []
+    },
+    {
+      "permission": "desktopAutoStart",
+      "priority": "optional",
+      "triggers": ["actionTrigger"],
+      "supportedPlatforms": ["desktop"],
+      "customTitle": "开机自启权限",
+      "customDescription": "用于开机时自动启动应用",
+      "allowSkip": true,
+      "deniedStrategy": "showDialog",
+      "maxRetryCount": 1,
+      "relatedRoutes": ["/settings"]
+    }
+  ],
+  "platformSpecific": {
+    "mobile": {
+      "requiredPermissions": ["storage"],
+      "recommendedPermissions": ["camera", "location", "notification"]
+    },
+    "web": {
+      "requiredPermissions": [],
+      "recommendedPermissions": ["webNotification", "webLocation"]
+    },
+    "desktop": {
+      "requiredPermissions": ["desktopFileSystem"],
+      "recommendedPermissions": ["desktopSystemTray"]
+    }
+  },
+  "scenarios": {
+    "appLaunch": {
+      "description": "应用启动时需要的权限",
+      "showGuide": true,
+      "allowSkipOptional": true
+    },
+    "pageEnter": {
+      "description": "进入特定页面时需要的权限",
+      "showGuide": true,
+      "allowSkipOptional": true
+    },
+    "actionTrigger": {
+      "description": "执行特定操作时需要的权限",
+      "showGuide": false,
+      "allowSkipOptional": true
+    }
+  }
+}

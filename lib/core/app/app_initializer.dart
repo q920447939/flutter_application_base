@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../permissions/permission_service.dart';
+import '../permissions/permission_initializer.dart';
 import '../security/security_detector.dart';
 import '../security/certificate_pinning_service.dart';
 import '../localization/localization_service.dart';
@@ -20,6 +21,7 @@ import '../storage/storage_service.dart';
 import '../router/dynamic_route_service.dart';
 import '../network/network_initializer.dart';
 import '../theme/theme_initializer.dart';
+import '../../example/routes/example_routes.dart';
 
 /// 应用初始化器
 class AppInitializer {
@@ -60,6 +62,9 @@ class AppInitializer {
 
     // 初始化动态路由服务
     await _initializeDynamicRoutes();
+
+    // 初始化示例路由系统
+    await _initializeExampleRoutes();
 
     _isInitialized = true;
   }
@@ -113,6 +118,30 @@ class AppInitializer {
   static Future<void> _initializePermissions() async {
     // 初始化权限服务
     PermissionService.instance;
+
+    // 初始化权限系统
+    final result = await PermissionInitializer.instance.initialize(
+      showGuideOnStartup: true,
+      useCache: true,
+    );
+
+    if (!result.success) {
+      debugPrint('权限初始化失败: ${result.errorMessage}');
+      if (result.shouldExitApp) {
+        debugPrint('应用将退出');
+        // 这里可以添加退出应用的逻辑
+      }
+    } else {
+      debugPrint('权限初始化成功');
+      debugPrint(
+        '已授权权限: ${result.grantedPermissions.map((p) => p.name).join(', ')}',
+      );
+      if (result.deniedPermissions.isNotEmpty) {
+        debugPrint(
+          '被拒绝权限: ${result.deniedPermissions.map((p) => p.name).join(', ')}',
+        );
+      }
+    }
   }
 
   /// 初始化安全检测
@@ -140,6 +169,21 @@ class AppInitializer {
   static Future<void> _initializeDynamicRoutes() async {
     // 初始化动态路由服务并获取配置
     await DynamicRouteService.instance.fetchRouteConfig();
+  }
+
+  /// 初始化示例路由系统
+  static Future<void> _initializeExampleRoutes() async {
+    try {
+      debugPrint('开始初始化示例路由系统...');
+
+      // 初始化示例路由
+      await ExampleRoutes.initializeRoutes();
+
+      debugPrint('示例路由系统初始化完成');
+    } catch (e) {
+      debugPrint('示例路由系统初始化失败: $e');
+      // 不抛出异常，允许应用继续运行
+    }
   }
 
   /// 检查是否已初始化
