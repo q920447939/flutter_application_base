@@ -1,0 +1,305 @@
+{
+  "routes": [
+    {
+      "path": "/dynamic/news",
+      "name": "新闻列表",
+      "pageType": "list",
+      "title": "最新资讯",
+      "requiresAuth": false,
+      "enabled": true,
+      "order": 1,
+      "pageConfig": {
+        "dataSource": {
+          "endpoint": "/api/news",
+          "method": "GET",
+          "transform": {
+            "dataPath": "data.items",
+            "fieldMapping": {
+              "title": "headline",
+              "description": "summary",
+              "imageUrl": "thumbnail"
+            }
+          },
+          "cache": {
+            "duration": 300,
+            "enabled": true
+          }
+        }
+      }
+    },
+    {
+      "path": "/dynamic/news/{id}",
+      "name": "新闻详情",
+      "pageType": "detail",
+      "title": "新闻详情",
+      "requiresAuth": false,
+      "enabled": true,
+      "order": 2,
+      "pageConfig": {
+        "dataSource": {
+          "endpoint": "/api/news/{id}",
+          "method": "GET",
+          "transform": {
+            "dataPath": "data"
+          }
+        },
+        "layout": {
+          "type": "column",
+          "components": [
+            {
+              "type": "image",
+              "properties": {
+                "src": "{{imageUrl}}",
+                "width": 300,
+                "height": 200,
+                "fit": "cover"
+              }
+            },
+            {
+              "type": "spacer",
+              "properties": {
+                "height": 16
+              }
+            },
+            {
+              "type": "text",
+              "properties": {
+                "text": "{{title}}",
+                "style": {
+                  "fontSize": 24,
+                  "fontWeight": "bold"
+                }
+              }
+            },
+            {
+              "type": "spacer",
+              "properties": {
+                "height": 12
+              }
+            },
+            {
+              "type": "text",
+              "properties": {
+                "text": "{{publishTime}}",
+                "style": {
+                  "fontSize": 14,
+                  "color": "#666666"
+                }
+              }
+            },
+            {
+              "type": "divider",
+              "properties": {
+                "height": 20,
+                "thickness": 1
+              }
+            },
+            {
+              "type": "text",
+              "properties": {
+                "text": "{{content}}",
+                "style": {
+                  "fontSize": 16,
+                  "lineHeight": 1.5
+                }
+              }
+            }
+          ],
+          "parameters": {
+            "padding": {
+              "left": 16,
+              "top": 16,
+              "right": 16,
+              "bottom": 16
+            }
+          }
+        }
+      }
+    },
+    {
+      "path": "/dynamic/feedback",
+      "name": "意见反馈",
+      "pageType": "form",
+      "title": "意见反馈",
+      "requiresAuth": true,
+      "enabled": true,
+      "order": 3,
+      "pageConfig": {
+        "form": {
+          "fields": [
+            {
+              "name": "type",
+              "type": "select",
+              "label": "反馈类型",
+              "required": true,
+              "properties": {
+                "options": [
+                  {"value": "bug", "label": "Bug反馈"},
+                  {"value": "feature", "label": "功能建议"},
+                  {"value": "other", "label": "其他"}
+                ]
+              }
+            },
+            {
+              "name": "title",
+              "type": "text",
+              "label": "标题",
+              "required": true,
+              "properties": {
+                "placeholder": "请输入反馈标题",
+                "maxLength": 100
+              }
+            },
+            {
+              "name": "content",
+              "type": "textarea",
+              "label": "详细描述",
+              "required": true,
+              "properties": {
+                "placeholder": "请详细描述您的问题或建议",
+                "maxLines": 6,
+                "maxLength": 1000
+              }
+            },
+            {
+              "name": "contact",
+              "type": "email",
+              "label": "联系邮箱",
+              "required": false,
+              "properties": {
+                "placeholder": "选填，用于回复您的反馈"
+              }
+            }
+          ],
+          "submitEndpoint": "/api/feedback",
+          "submitMethod": "POST"
+        }
+      }
+    },
+    {
+      "path": "/dynamic/about",
+      "name": "关于我们",
+      "pageType": "webview",
+      "title": "关于我们",
+      "requiresAuth": false,
+      "enabled": true,
+      "order": 4,
+      "pageConfig": {
+        "webView": {
+          "url": "https://example.com/about",
+          "showNavigationBar": true,
+          "javascriptEnabled": true
+        }
+      }
+    },
+    {
+      "path": "/dynamic/dashboard",
+      "name": "数据看板",
+      "pageType": "dynamic",
+      "title": "数据看板",
+      "requiresAuth": true,
+      "permissions": ["dashboard.view"],
+      "enabled": true,
+      "order": 5,
+      "pageConfig": {
+        "dataSource": {
+          "endpoint": "/api/dashboard/stats",
+          "method": "GET",
+          "cache": {
+            "duration": 60,
+            "enabled": true
+          }
+        },
+        "layout": {
+          "type": "column",
+          "components": [
+            {
+              "type": "card",
+              "properties": {
+                "margin": {"bottom": 16}
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "properties": {
+                    "text": "今日访问量",
+                    "style": {
+                      "fontSize": 16,
+                      "fontWeight": "bold"
+                    }
+                  }
+                },
+                {
+                  "type": "spacer",
+                  "properties": {"height": 8}
+                },
+                {
+                  "type": "text",
+                  "properties": {
+                    "text": "{{todayVisits}}",
+                    "style": {
+                      "fontSize": 32,
+                      "fontWeight": "bold",
+                      "color": "#2196F3"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "card",
+              "properties": {
+                "margin": {"bottom": 16}
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "properties": {
+                    "text": "总用户数",
+                    "style": {
+                      "fontSize": 16,
+                      "fontWeight": "bold"
+                    }
+                  }
+                },
+                {
+                  "type": "spacer",
+                  "properties": {"height": 8}
+                },
+                {
+                  "type": "text",
+                  "properties": {
+                    "text": "{{totalUsers}}",
+                    "style": {
+                      "fontSize": 32,
+                      "fontWeight": "bold",
+                      "color": "#4CAF50"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "button",
+              "properties": {
+                "text": "查看详细报告",
+                "type": "elevated"
+              },
+              "events": {
+                "onPressed": {
+                  "type": "navigate",
+                  "target": "/dynamic/reports"
+                }
+              }
+            }
+          ],
+          "parameters": {
+            "padding": 16
+          }
+        }
+      }
+    }
+  ],
+  "version": "1.0.0",
+  "updatedAt": "2024-01-15T10:30:00Z"
+}

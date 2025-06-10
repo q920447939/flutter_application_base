@@ -1,0 +1,6 @@
+/// 设置模块统一导出文件
+/// 
+/// 统一导出设置相关的所有类和方法
+library;
+
+export 'pages/settings_page.dart';

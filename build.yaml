@@ -1,0 +1,11 @@
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # 生成的代码将包含显式的类型转换
+          explicit_to_json: true
+          # 生成的代码将包含字段名称检查
+          field_rename: snake
+          # 生成的代码将包含空值检查
+          include_if_null: false
