@@ -63,29 +63,6 @@ class AppRouter {
     GetPage(name: AppRoutes.notFound, page: () => const _NotFoundPage()),
   ];
 
-  /// 获取所有路由页面（静态 + 动态）
-  static List<GetPage> get pages {
-    final allPages = <GetPage>[...staticPages];
-
-    // 添加动态路由
-    final dynamicRoutes = DynamicRouteService.instance.getEnabledRoutes();
-    for (final route in dynamicRoutes) {
-      allPages.add(
-        GetPage(
-          name: route.path,
-          page:
-              () => DynamicPageFactory.createPage(
-                route,
-                arguments: Get.arguments,
-              ),
-          middlewares: route.requiresAuth ? [AuthMiddleware()] : null,
-        ),
-      );
-    }
-
-    return allPages;
-  }
-
   /// 初始化动态路由
   static Future<void> initializeDynamicRoutes() async {
     await DynamicRouteService.instance.fetchRouteConfig();

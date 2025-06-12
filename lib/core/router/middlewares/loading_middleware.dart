@@ -1,5 +1,5 @@
 /// 加载中间件
-/// 
+///
 /// 在路由层处理页面加载状态和网络检查
 library;
 
@@ -11,28 +11,28 @@ import 'base_middleware.dart';
 class LoadingMiddlewareConfig {
   /// 是否启用全局加载状态
   final bool enableGlobalLoading;
-  
+
   /// 是否启用网络状态检查
   final bool enableNetworkCheck;
-  
+
   /// 最小加载时间（毫秒）
   final int minLoadingDuration;
-  
+
   /// 加载超时时间（毫秒）
   final int loadingTimeout;
-  
+
   /// 页面数据预加载回调
   final Future<bool> Function()? onPreloadData;
-  
+
   /// 网络状态变化回调
   final void Function(bool isConnected)? onNetworkStatusChanged;
-  
+
   /// 加载开始回调
   final void Function(String route)? onLoadingStart;
-  
+
   /// 加载完成回调
   final void Function(String route, Duration duration)? onLoadingComplete;
-  
+
   /// 加载失败回调
   final void Function(String route, String error)? onLoadingError;
 
@@ -66,7 +66,8 @@ class LoadingMiddlewareConfig {
       minLoadingDuration: minLoadingDuration ?? this.minLoadingDuration,
       loadingTimeout: loadingTimeout ?? this.loadingTimeout,
       onPreloadData: onPreloadData ?? this.onPreloadData,
-      onNetworkStatusChanged: onNetworkStatusChanged ?? this.onNetworkStatusChanged,
+      onNetworkStatusChanged:
+          onNetworkStatusChanged ?? this.onNetworkStatusChanged,
       onLoadingStart: onLoadingStart ?? this.onLoadingStart,
       onLoadingComplete: onLoadingComplete ?? this.onLoadingComplete,
       onLoadingError: onLoadingError ?? this.onLoadingError,
@@ -100,7 +101,18 @@ class LoadingMiddleware extends BaseRouteMiddleware {
   };
 
   @override
-  Future<MiddlewareResult> preCheck(String? route, Map<String, String>? parameters) async {
+  MiddlewareResult preCheckSync(
+    String? route,
+    Map<String, String>? parameters,
+  ) {
+    return MiddlewareResult.proceed();
+  }
+
+  @override
+  Future<MiddlewareResult> preCheck(
+    String? route,
+    Map<String, String>? parameters,
+  ) async {
     if (route == null) {
       return MiddlewareResult.proceed();
     }
@@ -134,22 +146,19 @@ class LoadingMiddleware extends BaseRouteMiddleware {
 
       final duration = DateTime.now().difference(_loadingStartTime!);
       config.onLoadingComplete?.call(route, duration);
-      
+
       _isLoading = false;
       logInfo('加载检查完成，路由: $route, 耗时: ${duration.inMilliseconds}ms');
-      
+
       return MiddlewareResult.proceed();
     } catch (e) {
       _isLoading = false;
       final errorMessage = '加载检查失败: $e';
       logError(errorMessage, e);
-      
+
       config.onLoadingError?.call(route, errorMessage);
-      
-      return MiddlewareResult.redirect(
-        '/error',
-        errorMessage: errorMessage,
-      );
+
+      return MiddlewareResult.redirect('/error', errorMessage: errorMessage);
     }
   }
 
@@ -159,14 +168,14 @@ class LoadingMiddleware extends BaseRouteMiddleware {
     if (_isLoading && config.enableGlobalLoading) {
       return _buildLoadingPage();
     }
-    
+
     return page;
   }
 
   @override
   void onPageDisposeInternal() {
     super.onPageDisposeInternal();
-    
+
     // 清理加载状态
     if (_isLoading) {
       _isLoading = false;
@@ -178,23 +187,23 @@ class LoadingMiddleware extends BaseRouteMiddleware {
   Future<MiddlewareResult> _checkNetworkStatus(String route) async {
     try {
       logInfo('检查网络状态');
-      
+
       // 这里可以集成具体的网络检查库，如 connectivity_plus
       final isConnected = await _performNetworkCheck();
-      
+
       if (!isConnected) {
         logWarning('网络连接失败');
         config.onNetworkStatusChanged?.call(false);
-        
+
         return MiddlewareResult.redirect(
           '/network_error',
           errorMessage: '网络连接失败，请检查网络设置',
         );
       }
-      
+
       config.onNetworkStatusChanged?.call(true);
       logInfo('网络连接正常');
-      
+
       return MiddlewareResult.proceed();
     } catch (e) {
       logError('网络状态检查异常', e);
@@ -209,16 +218,16 @@ class LoadingMiddleware extends BaseRouteMiddleware {
   Future<MiddlewareResult> _executePreloadData(String route) async {
     try {
       logInfo('开始数据预加载');
-      
+
       // 设置超时
       final preloadFuture = config.onPreloadData!();
       final timeoutFuture = Future.delayed(
         Duration(milliseconds: config.loadingTimeout),
         () => false,
       );
-      
+
       final result = await Future.any([preloadFuture, timeoutFuture]);
-      
+
       if (!result) {
         logWarning('数据预加载失败或超时');
         return MiddlewareResult.redirect(
@@ -226,7 +235,7 @@ class LoadingMiddleware extends BaseRouteMiddleware {
           errorMessage: '数据加载失败，请重试',
         );
       }
-      
+
       logInfo('数据预加载完成');
       return MiddlewareResult.proceed();
     } catch (e) {
@@ -241,10 +250,10 @@ class LoadingMiddleware extends BaseRouteMiddleware {
   /// 确保最小加载时间
   Future<void> _ensureMinLoadingDuration() async {
     if (_loadingStartTime == null) return;
-    
+
     final elapsed = DateTime.now().difference(_loadingStartTime!);
     final minDuration = Duration(milliseconds: config.minLoadingDuration);
-    
+
     if (elapsed < minDuration) {
       final remainingTime = minDuration - elapsed;
       logInfo('等待最小加载时间: ${remainingTime.inMilliseconds}ms');
@@ -259,7 +268,7 @@ class LoadingMiddleware extends BaseRouteMiddleware {
       // 示例：使用 connectivity_plus
       // final connectivityResult = await Connectivity().checkConnectivity();
       // return connectivityResult != ConnectivityResult.none;
-      
+
       // 简单的网络检查示例（实际项目中应该使用更可靠的方法）
       await Future.delayed(const Duration(milliseconds: 100));
       return true; // 暂时返回 true
@@ -278,16 +287,11 @@ class LoadingMiddleware extends BaseRouteMiddleware {
           children: [
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
-            Text(
-              '页面加载中...',
-              style: Get.textTheme.bodyLarge,
-            ),
+            Text('页面加载中...', style: Get.textTheme.bodyLarge),
             const SizedBox(height: 8),
             Text(
               '请稍候',
-              style: Get.textTheme.bodyMedium?.copyWith(
-                color: Colors.grey,
-              ),
+              style: Get.textTheme.bodyMedium?.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -331,7 +335,9 @@ class LoadingMiddlewareBuilder {
   }
 
   /// 设置网络状态变化回调
-  LoadingMiddlewareBuilder onNetworkStatusChanged(void Function(bool) callback) {
+  LoadingMiddlewareBuilder onNetworkStatusChanged(
+    void Function(bool) callback,
+  ) {
     _config = _config.copyWith(onNetworkStatusChanged: callback);
     return this;
   }
@@ -343,13 +349,17 @@ class LoadingMiddlewareBuilder {
   }
 
   /// 设置加载完成回调
-  LoadingMiddlewareBuilder onLoadingComplete(void Function(String, Duration) callback) {
+  LoadingMiddlewareBuilder onLoadingComplete(
+    void Function(String, Duration) callback,
+  ) {
     _config = _config.copyWith(onLoadingComplete: callback);
     return this;
   }
 
   /// 设置加载失败回调
-  LoadingMiddlewareBuilder onLoadingError(void Function(String, String) callback) {
+  LoadingMiddlewareBuilder onLoadingError(
+    void Function(String, String) callback,
+  ) {
     _config = _config.copyWith(onLoadingError: callback);
     return this;
   }
@@ -379,9 +389,7 @@ class LoadingMiddlewareFactory {
 
   /// 创建带数据预加载的中间件
   static LoadingMiddleware withPreload(Future<bool> Function() preloadData) {
-    return LoadingMiddlewareBuilder()
-        .onPreloadData(preloadData)
-        .build();
+    return LoadingMiddlewareBuilder().onPreloadData(preloadData).build();
   }
 
   /// 创建完整功能的中间件

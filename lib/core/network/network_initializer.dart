@@ -141,9 +141,6 @@ class NetworkInitializer extends GetxController {
       // 步骤5: 启动连接性监控
       await _startConnectivityMonitoring();
 
-      // 步骤6: 执行初始健康检查
-      //await _performInitialHealthCheck();
-
       stopwatch.stop();
       _status.value = NetworkInitializationStatus.initialized;
       _retryCount = 0;

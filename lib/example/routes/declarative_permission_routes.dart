@@ -19,9 +19,6 @@ class DeclarativePermissionRoutes {
 
       // 预设权限配置演示
       ..._getPresetRoutes(),
-
-      // 自定义权限配置演示
-      ..._getCustomRoutes(),
     ];
   }
 
@@ -77,7 +74,7 @@ class DeclarativePermissionRoutes {
     return RouteBuilder()
         .path('/declarative')
         .page(() => const DeclarativePermissionHomePage())
-        .title('声明式权限配置演示')
+        .title('声明式权限配置演示1')
         .withAnalytics(pageName: 'declarative_permission_home')
         .build();
   }
@@ -141,47 +138,6 @@ class DeclarativePermissionRoutes {
     ];
   }
 
-  /// 自定义权限配置路由
-  static List<RouteConfig> _getCustomRoutes() {
-    return [
-      // 7. 自定义权限配置演示 - 使用构建器模式
-      RouteBuilder()
-          .path('/declarative/custom')
-          .page(() => const DeclarativeCustomPage())
-          .title('自定义权限配置')
-          .withDeclarativePermissions(
-            PermissionConfigBuilder()
-                .required([AppPermission.camera])
-                .optional([AppPermission.storage, AppPermission.microphone])
-                .description('这是一个自定义的权限配置演示')
-                .showGuide(true)
-                .allowSkipOptional(false)
-                .deniedRedirectRoute('/permission_denied')
-                .addCustomTitle(AppPermission.camera, '自定义相机权限')
-                .addCustomDescription(AppPermission.camera, '用于演示自定义权限配置的相机功能')
-                .addCustomTitle(AppPermission.storage, '自定义存储权限')
-                .addCustomDescription(AppPermission.storage, '用于保存演示文件')
-                .build(),
-          )
-          .withAnalytics(pageName: 'declarative_custom')
-          .build(),
-
-      // 8. 工厂方法演示 - 使用工厂方法创建
-      RouteBuilder()
-          .path('/declarative/factory')
-          .page(() => const DeclarativeFactoryPage())
-          .title('工厂方法演示')
-          .withDeclarativePermissions(
-            PermissionConfigFactory.multimedia(
-              cameraRequired: true,
-              micRequired: false,
-            ),
-          )
-          .withAnalytics(pageName: 'declarative_factory')
-          .build(),
-    ];
-  }
-
   /// 获取路由统计信息
   static Map<String, dynamic> getRouteStatistics() {
     final routes = getAllRoutes();
@@ -194,7 +150,6 @@ class DeclarativePermissionRoutes {
       'total_routes': routes.length,
       'permission_routes': permissionRoutes.length,
       'preset_routes': _getPresetRoutes().length,
-      'custom_routes': _getCustomRoutes().length,
     };
   }
 

@@ -37,15 +37,6 @@ class DeclarativePermissionRoutes {
   /// 预设权限配置路由
   static List<RouteConfig> _getPresetRoutes() {
     return [
-      // 1. 相机演示 - 使用预设权限配置
-      RoutePresets.withDeclarativePermissions(
-        '/declarative/camera',
-        () => const DeclarativeCameraPage(),
-        PermissionPresets.camera,
-        title: '相机演示',
-        analyticsPageName: 'declarative_camera',
-      ),
-
       // 2. 位置演示 - 可选权限配置
       RoutePresets.withDeclarativePermissions(
         '/declarative/location',

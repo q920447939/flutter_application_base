@@ -4,9 +4,49 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_base/core/permissions/permission_guide_page.dart';
 import 'package:get/get.dart';
 import 'base_middleware.dart';
 import '../../permissions/permission_service.dart';
+
+/// 权限拒绝处理策略枚举
+enum PermissionDeniedStrategy {
+  /// 返回上一页面
+  goBack,
+
+  /// 跳转到主页
+  goHome,
+
+  /// 退出应用
+  exitApp,
+
+  /// 跳转到指定路由
+  redirectTo,
+
+  /// 自定义处理
+  custom,
+}
+
+/// 权限检查状态
+enum PermissionCheckState {
+  /// 初始状态
+  initial,
+
+  /// 检查中
+  checking,
+
+  /// 请求权限中
+  requesting,
+
+  /// 权限被拒绝
+  denied,
+
+  /// 权限已授权
+  granted,
+
+  /// 达到最大尝试次数
+  maxAttemptsReached,
+}
 
 /// 权限中间件配置
 class PermissionMiddlewareConfig {
@@ -25,6 +65,15 @@ class PermissionMiddlewareConfig {
   /// 权限被拒绝时的重定向路由
   final String? deniedRedirectRoute;
 
+  /// 最大权限请求尝试次数（防止无限循环）
+  final int maxAttempts;
+
+  /// 权限拒绝处理策略
+  final PermissionDeniedStrategy deniedStrategy;
+
+  /// 自定义重定向路由（当策略为redirectTo时使用）
+  final String? customRedirectRoute;
+
   /// 权限检查失败时的自定义处理
   final Future<bool> Function(List<AppPermission> deniedPermissions)?
   onPermissionDenied;
@@ -33,14 +82,21 @@ class PermissionMiddlewareConfig {
   final void Function(List<AppPermission> grantedPermissions)?
   onPermissionGranted;
 
+  /// 达到最大尝试次数时的回调
+  final Future<void> Function(String route, int attempts)? onMaxAttemptsReached;
+
   const PermissionMiddlewareConfig({
     this.requiredPermissions = const [],
     this.optionalPermissions = const [],
     this.showGuide = true,
     this.allowSkipOptional = true,
     this.deniedRedirectRoute,
+    this.maxAttempts = 3,
+    this.deniedStrategy = PermissionDeniedStrategy.goBack,
+    this.customRedirectRoute,
     this.onPermissionDenied,
     this.onPermissionGranted,
+    this.onMaxAttemptsReached,
   });
 
   /// 获取所有权限
@@ -59,8 +115,12 @@ class PermissionMiddlewareConfig {
     bool? showGuide,
     bool? allowSkipOptional,
     String? deniedRedirectRoute,
+    int? maxAttempts,
+    PermissionDeniedStrategy? deniedStrategy,
+    String? customRedirectRoute,
     Future<bool> Function(List<AppPermission>)? onPermissionDenied,
     void Function(List<AppPermission>)? onPermissionGranted,
+    Future<void> Function(String, int)? onMaxAttemptsReached,
   }) {
     return PermissionMiddlewareConfig(
       requiredPermissions: requiredPermissions ?? this.requiredPermissions,
@@ -68,15 +128,74 @@ class PermissionMiddlewareConfig {
       showGuide: showGuide ?? this.showGuide,
       allowSkipOptional: allowSkipOptional ?? this.allowSkipOptional,
       deniedRedirectRoute: deniedRedirectRoute ?? this.deniedRedirectRoute,
+      maxAttempts: maxAttempts ?? this.maxAttempts,
+      deniedStrategy: deniedStrategy ?? this.deniedStrategy,
+      customRedirectRoute: customRedirectRoute ?? this.customRedirectRoute,
       onPermissionDenied: onPermissionDenied ?? this.onPermissionDenied,
       onPermissionGranted: onPermissionGranted ?? this.onPermissionGranted,
+      onMaxAttemptsReached: onMaxAttemptsReached ?? this.onMaxAttemptsReached,
     );
+  }
+}
+
+/// 权限检查状态管理器
+class PermissionCheckStateManager {
+  static final PermissionCheckStateManager _instance =
+      PermissionCheckStateManager._internal();
+  factory PermissionCheckStateManager() => _instance;
+  PermissionCheckStateManager._internal();
+
+  /// 路由权限检查状态缓存 <路由路径, <权限检查状态, 尝试次数>>
+  final Map<String, Map<String, dynamic>> _routePermissionStates = {};
+
+  /// 获取路由的权限检查状态
+  PermissionCheckState getRoutePermissionState(String route) {
+    final stateData = _routePermissionStates[route];
+    if (stateData == null) return PermissionCheckState.initial;
+    return stateData['state'] ?? PermissionCheckState.initial;
+  }
+
+  /// 获取路由的权限检查尝试次数
+  int getRouteAttemptCount(String route) {
+    final stateData = _routePermissionStates[route];
+    if (stateData == null) return 0;
+    return stateData['attempts'] ?? 0;
+  }
+
+  /// 设置路由的权限检查状态
+  void setRoutePermissionState(String route, PermissionCheckState state) {
+    _routePermissionStates[route] ??= {};
+    _routePermissionStates[route]!['state'] = state;
+  }
+
+  /// 增加路由的权限检查尝试次数
+  void incrementRouteAttemptCount(String route) {
+    _routePermissionStates[route] ??= {};
+    final currentAttempts = _routePermissionStates[route]!['attempts'] ?? 0;
+    _routePermissionStates[route]!['attempts'] = currentAttempts + 1;
+  }
+
+  /// 重置路由的权限检查状态
+  void resetRoutePermissionState(String route) {
+    _routePermissionStates.remove(route);
+  }
+
+  /// 清理所有状态
+  void clearAllStates() {
+    _routePermissionStates.clear();
+  }
+
+  /// 检查是否达到最大尝试次数
+  bool hasReachedMaxAttempts(String route, int maxAttempts) {
+    return getRouteAttemptCount(route) >= maxAttempts;
   }
 }
 
 /// 权限中间件实现
 class PermissionMiddleware extends BaseRouteMiddleware {
   final PermissionMiddlewareConfig config;
+  final PermissionCheckStateManager _stateManager =
+      PermissionCheckStateManager();
 
   PermissionMiddleware(this.config);
 
@@ -111,7 +230,7 @@ class PermissionMiddleware extends BaseRouteMiddleware {
     }
 
     try {
-      logInfo('开始权限检查，路由: $route');
+      logInfo('开始异步权限检查，路由: $route');
 
       // 检查必需权限
       if (config.requiredPermissions.isNotEmpty) {
@@ -121,15 +240,10 @@ class PermissionMiddleware extends BaseRouteMiddleware {
         }
       }
 
-      // 检查可选权限
-      if (config.optionalPermissions.isNotEmpty) {
-        await _checkOptionalPermissions(route);
-      }
-
-      logInfo('权限检查通过，允许访问路由: $route');
+      logInfo('异步权限检查通过，允许访问路由: $route');
       return MiddlewareResult.proceed();
     } catch (e) {
-      logError('权限检查异常', e);
+      logError('异步权限检查异常', e);
       return MiddlewareResult.redirect(
         config.deniedRedirectRoute ?? '/error',
         errorMessage: '权限检查失败: $e',
@@ -137,7 +251,218 @@ class PermissionMiddleware extends BaseRouteMiddleware {
     }
   }
 
-  /// 检查必需权限
+  @override
+  RouteSettings? redirect(String? route) {
+    if (!isEnabled) {
+      return null;
+    }
+    try {
+      logInfo('开始同步权限检查，路由: $route');
+
+      // 检查是否达到最大尝试次数
+      if (_stateManager.hasReachedMaxAttempts(route!, config.maxAttempts)) {
+        logWarning('路由 $route 权限检查已达到最大尝试次数: ${config.maxAttempts}');
+        return RouteSettings(
+          name: '/error',
+          arguments: '路由 $route 权限检查已达到最大尝试次数: ${config.maxAttempts}',
+        );
+      }
+
+      // 检查当前权限状态，避免重复检查
+      final currentState = _stateManager.getRoutePermissionState(route);
+      if (currentState == PermissionCheckState.requesting) {
+        logInfo('路由 $route 权限正在请求中，跳过检查');
+        return RouteSettings(
+          name: '/error',
+          arguments: '路由 $route 权限正在请求中，跳过检查',
+        );
+      }
+
+      // 检查必需权限（同步版本）
+      if (config.requiredPermissions.isNotEmpty) {
+        final requiredResult = _checkRequiredPermissionsSync(route);
+        if (!requiredResult.canProceed) {
+          //return RouteSettings(name: '/error', arguments: '路由 $route 权限正在请求中，跳过检查');
+          /*   Get.to(
+            PermissionGuidePage(requiredPermissions: config.allPermissions),
+          );
+          return RouteSettings(name: route); */
+          return RouteSettings(
+            name: '/permission_request',
+            arguments: '路由 $route 权限正在请求中，跳过检查',
+          );
+        }
+      }
+
+      // 权限检查通过，重置状态
+      _stateManager.setRoutePermissionState(
+        route,
+        PermissionCheckState.granted,
+      );
+
+      logInfo('同步权限检查通过，允许访问路由: $route');
+
+      return RouteSettings(name: route);
+    } catch (e) {
+      logError('同步权限检查异常', e);
+      return null;
+    }
+  }
+
+  @override
+  MiddlewareResult preCheckSync(
+    String? route,
+    Map<String, String>? parameters,
+  ) {
+    if (!config.hasPermissions || route == null) {
+      logInfo('无需权限检查，允许访问路由: $route');
+      return MiddlewareResult.proceed();
+    }
+
+    try {
+      logInfo('开始同步权限检查，路由: $route');
+
+      // 检查是否达到最大尝试次数
+      if (_stateManager.hasReachedMaxAttempts(route, config.maxAttempts)) {
+        logWarning('路由 $route 权限检查已达到最大尝试次数: ${config.maxAttempts}');
+        return _handleMaxAttemptsReached(route);
+      }
+
+      // 检查当前权限状态，避免重复检查
+      final currentState = _stateManager.getRoutePermissionState(route);
+      if (currentState == PermissionCheckState.requesting) {
+        logInfo('路由 $route 权限正在请求中，跳过检查');
+        return MiddlewareResult.proceed();
+      }
+
+      // 检查必需权限（同步版本）
+      if (config.requiredPermissions.isNotEmpty) {
+        final requiredResult = _checkRequiredPermissionsSync(route);
+        if (!requiredResult.canProceed) {
+          return requiredResult;
+        }
+      }
+
+      // 权限检查通过，重置状态
+      _stateManager.setRoutePermissionState(
+        route,
+        PermissionCheckState.granted,
+      );
+      logInfo('同步权限检查通过，允许访问路由: $route');
+      return MiddlewareResult.proceed();
+    } catch (e) {
+      logError('同步权限检查异常', e);
+      return MiddlewareResult.redirect(
+        config.deniedRedirectRoute ?? '/error',
+        errorMessage: '权限检查失败: $e',
+      );
+    }
+  }
+
+  /// 处理达到最大尝试次数的情况
+  MiddlewareResult _handleMaxAttemptsReached(String route) {
+    // 设置状态为达到最大尝试次数
+    _stateManager.setRoutePermissionState(
+      route,
+      PermissionCheckState.maxAttemptsReached,
+    );
+
+    // 执行回调
+    config.onMaxAttemptsReached?.call(route, config.maxAttempts);
+
+    // 根据策略处理
+    switch (config.deniedStrategy) {
+      case PermissionDeniedStrategy.goBack:
+        // 返回上一页面，如果没有上一页面则跳转到主页
+        if (Get.routing.previous.isNotEmpty) {
+          Get.back();
+          return MiddlewareResult.proceed(); // 让GetX处理返回
+        } else {
+          return MiddlewareResult.redirect('/');
+        }
+      case PermissionDeniedStrategy.goHome:
+        return MiddlewareResult.redirect('/');
+      case PermissionDeniedStrategy.exitApp:
+        // 在实际应用中，这里可以调用SystemNavigator.pop()
+        return MiddlewareResult.redirect('/exit');
+      case PermissionDeniedStrategy.redirectTo:
+        return MiddlewareResult.redirect(
+          config.customRedirectRoute ?? '/',
+          errorMessage: '权限检查达到最大尝试次数',
+        );
+      case PermissionDeniedStrategy.custom:
+        // 如果有自定义处理，则使用自定义处理
+        if (config.onPermissionDenied != null) {
+          // 注意：这里是同步方法，不能调用异步的onPermissionDenied
+          // 可以考虑使用事件总线或其他方式处理
+          return MiddlewareResult.redirect(
+            config.deniedRedirectRoute ?? '/',
+            errorMessage: '权限检查达到最大尝试次数，需要自定义处理',
+          );
+        }
+        return MiddlewareResult.redirect('/');
+    }
+  }
+
+  /// 检查必需权限（同步版本）
+  MiddlewareResult _checkRequiredPermissionsSync(String? route) {
+    try {
+      // 设置检查状态
+      if (route != null) {
+        _stateManager.setRoutePermissionState(
+          route,
+          PermissionCheckState.checking,
+        );
+      }
+
+      // 同步检查权限状态（从缓存或本地存储）
+      final results = PermissionService.instance.checkPermissionsSync(
+        config.requiredPermissions,
+      );
+
+      final deniedPermissions =
+          results.entries
+              .where((entry) => !entry.value.isGranted)
+              .map((entry) => entry.key)
+              .toList();
+
+      if (deniedPermissions.isEmpty) {
+        // 所有必需权限都已授权
+        final grantedPermissions = config.requiredPermissions;
+        config.onPermissionGranted?.call(grantedPermissions);
+        logInfo(
+          '必需权限检查通过: ${grantedPermissions.map((p) => p.name).join(', ')}',
+        );
+        return MiddlewareResult.proceed();
+      }
+
+      logWarning('必需权限被拒绝: ${deniedPermissions.map((p) => p.name).join(', ')}');
+
+      // 增加尝试次数
+      if (route != null) {
+        _stateManager.incrementRouteAttemptCount(route);
+        _stateManager.setRoutePermissionState(
+          route,
+          PermissionCheckState.denied,
+        );
+      }
+
+      // 同步模式下不请求权限，直接重定向到权限授权页面
+      return MiddlewareResult.redirect(
+        config.deniedRedirectRoute ?? '/permission_request',
+        errorMessage:
+            '需要权限: ${deniedPermissions.map((p) => p.name).join(', ')}',
+      );
+    } catch (e) {
+      logError('同步权限检查异常', e);
+      return MiddlewareResult.redirect(
+        config.deniedRedirectRoute ?? '/error',
+        errorMessage: '权限检查失败: $e',
+      );
+    }
+  }
+
+  /// 检查必需权限（异步版本）
   Future<MiddlewareResult> _checkRequiredPermissions(String? route) async {
     final results = await PermissionService.instance.checkPermissions(
       config.requiredPermissions,
@@ -187,35 +512,20 @@ class PermissionMiddleware extends BaseRouteMiddleware {
     return MiddlewareResult.proceed();
   }
 
-  /// 检查可选权限
-  Future<void> _checkOptionalPermissions(String? route) async {
-    final results = await PermissionService.instance.checkPermissions(
-      config.optionalPermissions,
-    );
+  /// 重置路由权限状态（用于测试或特殊场景）
+  void resetRoutePermissionState(String route) {
+    _stateManager.resetRoutePermissionState(route);
+    logInfo('已重置路由 $route 的权限检查状态');
+  }
 
-    final deniedPermissions =
-        results.entries
-            .where((entry) => !entry.value.isGranted)
-            .map((entry) => entry.key)
-            .toList();
+  /// 获取路由权限检查状态（用于调试）
+  PermissionCheckState getRoutePermissionState(String route) {
+    return _stateManager.getRoutePermissionState(route);
+  }
 
-    final grantedPermissions =
-        results.entries
-            .where((entry) => entry.value.isGranted)
-            .map((entry) => entry.key)
-            .toList();
-
-    if (deniedPermissions.isNotEmpty) {
-      logInfo('可选权限被拒绝: ${deniedPermissions.map((p) => p.name).join(', ')}');
-
-      // 尝试请求可选权限
-      await _requestPermissions(deniedPermissions, isRequired: false);
-    }
-
-    if (grantedPermissions.isNotEmpty) {
-      config.onPermissionGranted?.call(grantedPermissions);
-      logInfo('可选权限已授权: ${grantedPermissions.map((p) => p.name).join(', ')}');
-    }
+  /// 获取路由权限检查尝试次数（用于调试）
+  int getRouteAttemptCount(String route) {
+    return _stateManager.getRouteAttemptCount(route);
   }
 
   /// 请求权限
@@ -400,6 +710,26 @@ class PermissionMiddlewareBuilder {
     return this;
   }
 
+  /// 设置最大尝试次数
+  PermissionMiddlewareBuilder maxAttempts(int attempts) {
+    _config = _config.copyWith(maxAttempts: attempts);
+    return this;
+  }
+
+  /// 设置权限拒绝处理策略
+  PermissionMiddlewareBuilder deniedStrategy(
+    PermissionDeniedStrategy strategy,
+  ) {
+    _config = _config.copyWith(deniedStrategy: strategy);
+    return this;
+  }
+
+  /// 设置自定义重定向路由
+  PermissionMiddlewareBuilder customRedirectRoute(String route) {
+    _config = _config.copyWith(customRedirectRoute: route);
+    return this;
+  }
+
   /// 设置权限被拒绝时的自定义处理
   PermissionMiddlewareBuilder onPermissionDenied(
     Future<bool> Function(List<AppPermission>) callback,
@@ -413,6 +743,14 @@ class PermissionMiddlewareBuilder {
     void Function(List<AppPermission>) callback,
   ) {
     _config = _config.copyWith(onPermissionGranted: callback);
+    return this;
+  }
+
+  /// 设置达到最大尝试次数时的回调
+  PermissionMiddlewareBuilder onMaxAttemptsReached(
+    Future<void> Function(String route, int attempts) callback,
+  ) {
+    _config = _config.copyWith(onMaxAttemptsReached: callback);
     return this;
   }
 

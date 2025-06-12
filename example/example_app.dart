@@ -1,12 +1,16 @@
-/// 声明式权限配置演示应用
+/// 框架示例应用
 ///
-/// 展示新路由架构和声明式权限配置的完整示例
+/// 独立的示例应用，展示框架的各种功能
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_base/core/permissions/permission_guide_page.dart';
+import 'package:flutter_application_base/core/permissions/permission_service.dart';
+import 'package:flutter_application_base/core/router/middlewares/permission_middleware.dart';
 import 'package:get/get.dart';
-import 'package:flutter_application_base/core/router/index.dart';
 import 'package:flutter_application_base/example/routes/example_routes.dart';
+
+import 'permission_middleware_usage_example.dart';
 
 /// 示例应用主类
 class ExampleApp extends StatelessWidget {
@@ -14,14 +18,41 @@ class ExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(111111);
     return GetMaterialApp(
-      title: '声明式权限配置演示',
+      title: 'Flutter框架示例1',
       debugShowCheckedModeBanner: false,
 
-      // 使用新路由架构的路由配置
-      getPages: ExampleRoutes.getGetPages(),
-      initialRoute: '/',
+      // 使用示例路由配置
+      getPages: [
+        ...ExampleRoutes.getGetPages(),
+        GetPage(
+          name: '/declarative/camera',
+          page: () => const CameraPage(),
+          middlewares: [
+            // 只检查相机页面需要的权限
+            PermissionMiddlewareBuilder()
+                .requiredPermissions([
+                  AppPermission.camera,
+                  AppPermission.storage,
+                ])
+                .maxAttempts(3) // 最多尝试3次
+                .deniedStrategy(PermissionDeniedStrategy.goBack) // 拒绝后返回上一页
+                .showGuide(true)
+                .onPermissionGranted((permissions) {
+                  debugPrint(
+                    '相机页面权限已授权: ${permissions.map((p) => p.name).join(', ')}',
+                  );
+                })
+                .onMaxAttemptsReached((route, attempts) async {
+                  debugPrint('相机页面权限检查达到最大尝试次数: $attempts');
+                  // 可以在这里记录用户行为分析
+                })
+                .build(),
+          ],
+        ),
+        GetPage(name: '/permission_request', page: () => PermissionGuidePage()),
+      ],
+      initialRoute: '/declarative',
 
       // 主题配置
       theme: _buildLightTheme(),
@@ -66,10 +97,6 @@ class ExampleApp extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
-      /* cardTheme: CardTheme(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ), */
     );
   }
 
@@ -93,10 +120,6 @@ class ExampleApp extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
-      /* cardTheme: CardTheme(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ), */
     );
   }
 }
@@ -134,5 +157,14 @@ class UnknownRoutePage extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class NotPermission extends StatelessWidget {
+  const NotPermission({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(child: Text('您必须拥有权限才能访问'));
   }
 }

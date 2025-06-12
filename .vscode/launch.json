@@ -10,16 +10,10 @@
             "type": "dart"
         },
         {
-            "name": "flutter_application_base (profile mode)",
+            "name": "flutter_application_base-测试",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "program": "example/main.dart",
         },
-        {
-            "name": "flutter_application_base (release mode)",
-            "request": "launch",
-            "type": "dart",
-            "flutterMode": "release"
-        }
     ]
 }

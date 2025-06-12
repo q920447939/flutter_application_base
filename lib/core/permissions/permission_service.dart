@@ -250,6 +250,15 @@ class PermissionService {
   static PermissionService? _instance;
   bool _isInitialized = false;
 
+  /// 权限状态缓存
+  final Map<AppPermission, PermissionResult> _permissionCache = {};
+
+  /// 缓存过期时间（毫秒）
+  static const int _cacheExpiryMs = 30000; // 30秒
+
+  /// 缓存时间戳
+  final Map<AppPermission, int> _cacheTimestamps = {};
+
   PermissionService._internal();
 
   /// 单例模式
@@ -289,6 +298,35 @@ class PermissionService {
     for (final permission in permissions) {
       final result = await checkPermission(permission);
       results[permission] = result;
+      // 更新缓存
+      _updateCache(permission, result);
+    }
+
+    return results;
+  }
+
+  /// 同步检查单个权限状态（从缓存）
+  PermissionResult? checkPermissionSync(AppPermission permission) {
+    final cachedResult = _getCachedResult(permission);
+    if (cachedResult != null) {
+      return cachedResult;
+    }
+
+    // 如果没有缓存，返回默认的拒绝状态
+    // 在实际应用中，这里可以从本地存储读取上次的权限状态
+    return PermissionResult.fromStatus(permission, PermissionStatus.denied);
+  }
+
+  /// 同步检查多个权限状态（从缓存）
+  Map<AppPermission, PermissionResult> checkPermissionsSync(
+    List<AppPermission> permissions,
+  ) {
+    final results = <AppPermission, PermissionResult>{};
+
+    for (final permission in permissions) {
+      results[permission] =
+          checkPermissionSync(permission) ??
+          PermissionResult.fromStatus(permission, PermissionStatus.denied);
     }
 
     return results;
@@ -442,6 +480,41 @@ class PermissionService {
     }
 
     return deniedPermissions;
+  }
+
+  /// 更新权限缓存
+  void _updateCache(AppPermission permission, PermissionResult result) {
+    _permissionCache[permission] = result;
+    _cacheTimestamps[permission] = DateTime.now().millisecondsSinceEpoch;
+  }
+
+  /// 获取缓存的权限结果
+  PermissionResult? _getCachedResult(AppPermission permission) {
+    final timestamp = _cacheTimestamps[permission];
+    if (timestamp == null) {
+      return null;
+    }
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (now - timestamp > _cacheExpiryMs) {
+      // 缓存已过期，清除
+      _permissionCache.remove(permission);
+      _cacheTimestamps.remove(permission);
+      return null;
+    }
+
+    return _permissionCache[permission];
+  }
+
+  /// 清除权限缓存
+  void clearCache() {
+    _permissionCache.clear();
+    _cacheTimestamps.clear();
+  }
+
+  /// 预热权限缓存
+  Future<void> warmupCache(List<AppPermission> permissions) async {
+    await checkPermissions(permissions);
   }
 
   /// 获取已授权的权限列表

@@ -20,9 +20,9 @@ class PermissionGuidePage extends StatefulWidget {
   final VoidCallback? onSkipped;
   final bool allowSkip;
 
-  const PermissionGuidePage({
+  PermissionGuidePage({
     super.key,
-    required this.requiredPermissions,
+    this.requiredPermissions = const [],
     this.title = '权限授权',
     this.description = '为了更好地为您提供服务，需要获取以下权限：',
     this.onCompleted,

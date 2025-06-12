@@ -1,55 +1,69 @@
 /// Flutter 自建框架主应用入口
 ///
-/// 集成了核心框架组件：
-/// - 应用初始化
-/// - 路由管理
-/// - 状态管理
-/// - 主题系统
+/// 这是框架的主入口文件，仅包含框架核心功能
+/// 测试和示例代码请参考 example/ 目录
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_base/core/app/app_initializer.dart';
+import 'core/app/framework_module_manager.dart';
 
-// 核心框架导入
-import 'example_app.dart';
+/// 框架主应用类
+class FrameworkApp extends StatelessWidget {
+  const FrameworkApp({super.key});
 
-void main() async {
-  // 确保Flutter绑定初始化
-  WidgetsFlutterBinding.ensureInitialized();
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Framework',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+      ),
+      home: const FrameworkHomePage(),
+    );
+  }
+}
 
-  try {
-    // 初始化应用
-    await AppInitializer.initialize();
+/// 框架主页
+class FrameworkHomePage extends StatelessWidget {
+  const FrameworkHomePage({super.key});
 
-    // 运行示例应用
-    runApp(const ExampleApp());
-  } catch (e) {
-    debugPrint('应用启动失败: $e');
-
-    // 显示错误页面
-    runApp(
-      MaterialApp(
-        home: Scaffold(
-          appBar: AppBar(title: const Text('启动错误')),
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error, size: 64, color: Colors.red),
-                const SizedBox(height: 16),
-                const Text('应用启动失败', style: TextStyle(fontSize: 20)),
-                const SizedBox(height: 8),
-                Text('错误信息: $e'),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => main(),
-                  child: const Text('重试'),
-                ),
-              ],
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Flutter Framework'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.widgets, size: 64, color: Colors.blue),
+            SizedBox(height: 16),
+            Text(
+              'Flutter 自建框架',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-          ),
+            SizedBox(height: 8),
+            Text('框架已成功初始化', style: TextStyle(color: Colors.grey)),
+            SizedBox(height: 24),
+            Text(
+              '要查看示例和测试，请运行 example/main.dart',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+void main() async {
+  // 使用新的模块化初始化系统
+  await FrameworkModuleManager.initializeAll();
+
+  // 运行框架主应用
+  //runApp(const FrameworkApp());
 }
