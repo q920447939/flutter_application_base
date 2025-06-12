@@ -90,7 +90,7 @@ class AnalyticsMiddleware extends BaseRouteMiddleware {
   };
 
   @override
-  Future<MiddlewareResult> preCheck(
+  /*   Future<MiddlewareResult> preCheck(
     String? route,
     Map<String, String>? parameters,
   ) async {
@@ -123,16 +123,7 @@ class AnalyticsMiddleware extends BaseRouteMiddleware {
     }
 
     return MiddlewareResult.proceed();
-  }
-
-  @override
-  MiddlewareResult preCheckSync(
-    String? route,
-    Map<String, String>? parameters,
-  ) {
-    return MiddlewareResult.proceed();
-  }
-
+  } */
   @override
   Future<void> postProcess(
     String? route,

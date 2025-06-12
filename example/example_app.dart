@@ -7,10 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_base/core/permissions/permission_guide_page.dart';
 import 'package:flutter_application_base/core/permissions/permission_service.dart';
 import 'package:flutter_application_base/core/router/middlewares/permission_middleware.dart';
+import 'package:flutter_application_base/example/pages/declarative_permission_demo_pages.dart';
 import 'package:get/get.dart';
 import 'package:flutter_application_base/example/routes/example_routes.dart';
-
-import 'permission_middleware_usage_example.dart';
 
 /// 示例应用主类
 class ExampleApp extends StatelessWidget {
@@ -27,7 +26,7 @@ class ExampleApp extends StatelessWidget {
         ...ExampleRoutes.getGetPages(),
         GetPage(
           name: '/declarative/camera',
-          page: () => const CameraPage(),
+          page: () => const DeclarativeCameraPage(),
           middlewares: [
             // 只检查相机页面需要的权限
             PermissionMiddlewareBuilder()
@@ -50,7 +49,17 @@ class ExampleApp extends StatelessWidget {
                 .build(),
           ],
         ),
-        GetPage(name: '/permission_request', page: () => PermissionGuidePage()),
+        GetPage(
+          name: '/permission_request',
+          page: () {
+            // 创建一个新的RouteSettings对象，使用当前路由名称和参数
+            final settings = RouteSettings(
+              name: Get.routing.current,
+              arguments: Get.arguments,
+            );
+            return PermissionGuidePage.fromRouteSettings(settings);
+          },
+        ),
       ],
       initialRoute: '/declarative',
 
@@ -150,7 +159,7 @@ class UnknownRoutePage extends StatelessWidget {
             const Text('您访问的页面不存在', style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => Get.offAllNamed('/'),
+              onPressed: () => Get.offAllNamed('/declarative'),
               child: const Text('返回首页'),
             ),
           ],

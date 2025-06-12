@@ -30,6 +30,19 @@ class PermissionGuidePage extends StatefulWidget {
     this.allowSkip = true,
   });
 
+  // 添加一个工厂构造函数从路由参数创建
+  static Widget fromRouteSettings(RouteSettings settings) {
+    final args = settings.arguments as Map<String, dynamic>?;
+
+    return PermissionGuidePage(
+      requiredPermissions: args?['requiredPermissions'] ?? const [],
+      title: '必要权限授权',
+      description: '以下权限是应用正常运行所必需的，请授权：',
+      allowSkip: false,
+      onCompleted: () => Get.back(result: true),
+    );
+  }
+
   @override
   State<PermissionGuidePage> createState() => _PermissionGuidePageState();
 }

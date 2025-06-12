@@ -101,15 +101,7 @@ class LoadingMiddleware extends BaseRouteMiddleware {
   };
 
   @override
-  MiddlewareResult preCheckSync(
-    String? route,
-    Map<String, String>? parameters,
-  ) {
-    return MiddlewareResult.proceed();
-  }
-
-  @override
-  Future<MiddlewareResult> preCheck(
+  /*   Future<MiddlewareResult> preCheck(
     String? route,
     Map<String, String>? parameters,
   ) async {
@@ -160,8 +152,7 @@ class LoadingMiddleware extends BaseRouteMiddleware {
 
       return MiddlewareResult.redirect('/error', errorMessage: errorMessage);
     }
-  }
-
+  } */
   @override
   Widget onPageBuiltInternal(Widget page) {
     // 如果正在加载且启用了全局加载状态，显示加载页面

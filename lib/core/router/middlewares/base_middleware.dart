@@ -68,22 +68,6 @@ abstract class BaseRouteMiddleware extends GetMiddleware {
   /// 中间件配置
   Map<String, dynamic> get configuration => {};
 
-  /// 执行前置检查（异步版本）
-  ///
-  /// 在路由跳转前执行，返回检查结果
-  Future<MiddlewareResult> preCheck(
-    String? route,
-    Map<String, String>? parameters,
-  ) async {
-    return MiddlewareResult.proceed();
-  }
-
-  /// 执行前置检查（同步版本）
-  ///
-  /// 在路由跳转前执行，返回检查结果
-  /// 子类可以重写此方法提供同步检查逻辑
-  MiddlewareResult preCheckSync(String? route, Map<String, String>? parameters);
-
   /// 执行后置处理
   ///
   /// 在路由跳转后执行，用于清理或记录
@@ -91,52 +75,6 @@ abstract class BaseRouteMiddleware extends GetMiddleware {
     String? route,
     Map<String, String>? parameters,
   ) async {}
-
-  @override
-  RouteSettings? redirect(String? route) {
-    if (!isEnabled) {
-      return null;
-    }
-
-    try {
-      // 解析路由参数
-      final uri = Uri.parse(route ?? '');
-      final parameters = uri.queryParameters;
-
-      // 执行同步前置检查
-      final result = _executePreCheckSync(route, parameters);
-
-      if (!result.canProceed) {
-        if (result.redirectRoute != null) {
-          debugPrint('[$middlewareName] 重定向到: ${result.redirectRoute}');
-          return RouteSettings(name: result.redirectRoute);
-        } else {
-          debugPrint('[$middlewareName] 阻止访问: ${result.errorMessage}');
-          return RouteSettings(name: '/error', arguments: result.errorMessage);
-        }
-      }
-
-      return null;
-    } catch (e) {
-      debugPrint('[$middlewareName] 执行异常: $e');
-      return RouteSettings(name: '/error', arguments: '中间件执行异常: $e');
-    }
-  }
-
-  @override
-  GetPage? onPageCalled(GetPage? page) {
-    if (!isEnabled || page == null) {
-      return page;
-    }
-
-    try {
-      // 执行页面调用处理
-      return onPageCalledInternal(page);
-    } catch (e) {
-      debugPrint('[$middlewareName] 页面调用处理异常: $e');
-      return page;
-    }
-  }
 
   @override
   List<Bindings>? onBindingsStart(List<Bindings>? bindings) {
@@ -224,20 +162,6 @@ abstract class BaseRouteMiddleware extends GetMiddleware {
 
   /// 内部页面销毁处理（子类可重写）
   void onPageDisposeInternal() {}
-
-  /// 执行前置检查（同步版本）
-  MiddlewareResult _executePreCheckSync(
-    String? route,
-    Map<String, String> parameters,
-  ) {
-    try {
-      // 调用同步版本的前置检查
-      return preCheckSync(route, parameters);
-    } catch (e) {
-      debugPrint('[$middlewareName] 同步前置检查异常: $e');
-      return MiddlewareResult.block('前置检查异常: $e');
-    }
-  }
 
   /// 执行后置处理（异步版本）
   void _executePostProcess(String? route, Map<String, String> parameters) {
