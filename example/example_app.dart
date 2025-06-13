@@ -49,17 +49,6 @@ class ExampleApp extends StatelessWidget {
                 .build(),
           ],
         ),
-        GetPage(
-          name: '/permission_request',
-          page: () {
-            // 创建一个新的RouteSettings对象，使用当前路由名称和参数
-            final settings = RouteSettings(
-              name: Get.routing.current,
-              arguments: Get.arguments,
-            );
-            return PermissionGuidePage.fromRouteSettings(settings);
-          },
-        ),
       ],
       initialRoute: '/declarative',
 

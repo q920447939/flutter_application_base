@@ -291,7 +291,8 @@ class PermissionMiddleware extends BaseRouteMiddleware {
 
       // 检查必需权限
       if (config.requiredPermissions.isNotEmpty) {
-        final anyIsNotGranted = await _checkRequiredPermissions(route);
+        var anyIsNotGranted = await _checkRequiredPermissions(route);
+        anyIsNotGranted = true;
         if (anyIsNotGranted) {
           var result = await _showPermissionGuide(
             config.requiredPermissions,
