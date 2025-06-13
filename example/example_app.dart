@@ -4,12 +4,12 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_base/core/permissions/permission_guide_page.dart';
 import 'package:flutter_application_base/core/permissions/permission_service.dart';
 import 'package:flutter_application_base/core/router/middlewares/permission_middleware.dart';
-import 'package:flutter_application_base/example/pages/declarative_permission_demo_pages.dart';
 import 'package:get/get.dart';
-import 'package:flutter_application_base/example/routes/example_routes.dart';
+
+import 'pages/declarative_permission_demo_pages.dart';
+import 'routes/declarative_permission_routes.dart';
 
 /// 示例应用主类
 class ExampleApp extends StatelessWidget {
@@ -23,7 +23,10 @@ class ExampleApp extends StatelessWidget {
 
       // 使用示例路由配置
       getPages: [
-        ...ExampleRoutes.getGetPages(),
+        GetPage(
+          name: '/declarative',
+          page: () => const DeclarativePermissionHomePage(),
+        ),
         GetPage(
           name: '/declarative/camera',
           page: () => const DeclarativeCameraPage(),

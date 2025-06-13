@@ -9,7 +9,6 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_application_base/core/router/app_route_manager.dart';
-import 'package:flutter_application_base/example/routes/declarative_permission_routes.dart';
 import 'framework_module.dart';
 import '../modules/module_registry.dart';
 
