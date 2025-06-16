@@ -14,6 +14,7 @@ import 'config_usage_example.dart';
 import 'http_config_strategy_example.dart';
 import 'pages/declarative_permission_demo_pages.dart';
 import 'pages/enhanced_login_demo_page.dart';
+import 'pages/member_cache_demo_page.dart';
 import 'routes/declarative_permission_routes.dart';
 
 /// 示例应用主类
@@ -37,6 +38,10 @@ class ExampleApp extends StatelessWidget {
           page: () => const EnhancedLoginDemoPage(),
         ),
         GetPage(name: '/auth/test', page: () => const AuthTestDemoPage()),
+        GetPage(
+          name: '/member/getInfo',
+          page: () => const MemberCacheDemoPage(),
+        ),
         GetPage(
           name: '/declarative/camera',
           page: () => const DeclarativeCameraPage(),
@@ -71,7 +76,7 @@ class ExampleApp extends StatelessWidget {
           page: () => const HttpConfigStrategyExamplePage(),
         ),
       ],
-      initialRoute: '/auth/enhanced-login',
+      initialRoute: '/member/getInfo',
 
       // 主题配置
       theme: _buildLightTheme(),
