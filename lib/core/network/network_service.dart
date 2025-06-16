@@ -16,9 +16,12 @@ import 'package:get/get.dart' as getx;
 import '../app/app_config.dart';
 import '../security/certificate_pinning_service.dart';
 import '../storage/storage_service.dart';
+import '../../features/auth/models/common_result.dart';
 import 'network_config_manager.dart';
 import 'network_initializer.dart';
 import 'network_strategy_factory.dart';
+import 'common_result_handler.dart';
+import 'response_handler.dart';
 
 /// 网络服务类
 class NetworkService {
@@ -326,5 +329,148 @@ class NetworkService {
       onReceiveProgress: onReceiveProgress,
       cancelToken: cancelToken,
     );
+  }
+
+  // ========== 统一响应处理方法 ==========
+
+  /// GET请求 - 返回CommonResult
+  Future<CommonResult<T>> getCommonResult<T>(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    T Function(Map<String, dynamic>)? fromJson,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await get<dynamic>(
+        path,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+
+      return await CommonResultHandler.instance.handleResponse<T>(
+        response,
+        fromJson: fromJson,
+      );
+    } catch (e) {
+      return CommonResultHandler.instance.handleError<T>(
+        _getErrorType(e),
+        e,
+        stackTrace: StackTrace.current,
+      );
+    }
+  }
+
+  /// POST请求 - 返回CommonResult
+  Future<CommonResult<T>> postCommonResult<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    T Function(Map<String, dynamic>)? fromJson,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await post<dynamic>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+
+      return await CommonResultHandler.instance.handleResponse<T>(
+        response,
+        fromJson: fromJson,
+      );
+    } catch (e) {
+      return CommonResultHandler.instance.handleError<T>(
+        _getErrorType(e),
+        e,
+        stackTrace: StackTrace.current,
+      );
+    }
+  }
+
+  /// PUT请求 - 返回CommonResult
+  Future<CommonResult<T>> putCommonResult<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    T Function(Map<String, dynamic>)? fromJson,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await put<dynamic>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+
+      return await CommonResultHandler.instance.handleResponse<T>(
+        response,
+        fromJson: fromJson,
+      );
+    } catch (e) {
+      return CommonResultHandler.instance.handleError<T>(
+        _getErrorType(e),
+        e,
+        stackTrace: StackTrace.current,
+      );
+    }
+  }
+
+  /// DELETE请求 - 返回CommonResult
+  Future<CommonResult<T>> deleteCommonResult<T>(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    T Function(Map<String, dynamic>)? fromJson,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      final response = await delete<dynamic>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+
+      return await CommonResultHandler.instance.handleResponse<T>(
+        response,
+        fromJson: fromJson,
+      );
+    } catch (e) {
+      return CommonResultHandler.instance.handleError<T>(
+        _getErrorType(e),
+        e,
+        stackTrace: StackTrace.current,
+      );
+    }
+  }
+
+  /// 根据异常类型获取错误类型
+  ErrorType _getErrorType(dynamic error) {
+    if (error is DioException) {
+      switch (error.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+        case DioExceptionType.connectionError:
+        case DioExceptionType.cancel:
+          return ErrorType.network;
+        case DioExceptionType.badResponse:
+          return ErrorType.http;
+        default:
+          return ErrorType.unknown;
+      }
+    }
+    return ErrorType.unknown;
   }
 }

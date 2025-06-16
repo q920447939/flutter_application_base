@@ -13,6 +13,7 @@ import 'auth_module.dart';
 import 'router_module.dart';
 import 'security_module.dart';
 import 'localization_module.dart';
+import 'config_module.dart';
 
 /// 模块注册器
 class ModuleRegistry {
@@ -20,6 +21,7 @@ class ModuleRegistry {
     // 按优先级顺序注册
     StorageModule(), // 优先级 5 - 最高优先级
     NetworkModule(), // 优先级 10
+    ConfigModule(), // 优先级 12 - 配置模块
     ThemeModule(), // 优先级 15
     PermissionModule(), // 优先级 20
     SecurityModule(), // 优先级 25

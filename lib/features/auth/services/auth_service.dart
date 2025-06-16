@@ -5,12 +5,21 @@
 /// - Token管理
 /// - 用户状态管理
 /// - 自动登录
+/// - 集成新的认证管理器
 library;
 
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart';
 import '../../../core/network/network_service.dart';
 import '../../../core/storage/storage_service.dart';
 import '../models/user_model.dart';
+import '../models/auth_request.dart';
+import '../models/common_result.dart';
+import '../models/auth_enums.dart';
+import '../models/login_response.dart';
+import 'auth_manager.dart';
+import 'captcha_service.dart';
+import 'device_info_service.dart';
 
 /// 认证状态枚举
 enum AuthStatus {
@@ -69,7 +78,7 @@ class AuthService extends GetxController {
         await _validateToken();
       }
     } catch (e) {
-      print('初始化认证服务失败: $e');
+      debugPrint('初始化认证服务失败: $e');
       await logout();
     } finally {
       if (_authStatus.value == AuthStatus.loading) {
@@ -106,12 +115,82 @@ class AuthService extends GetxController {
         await logout();
       }
     } catch (e) {
-      print('验证Token失败: $e');
+      debugPrint('验证Token失败: $e');
       await logout();
     }
   }
 
-  /// 登录
+  /// 用户名密码登录（新接口）
+  Future<bool> loginWithUsername({
+    required String username,
+    required String password,
+    required String captcha,
+    required String captchaSessionId,
+    Map<String, Object>? context,
+  }) async {
+    try {
+      _authStatus.value = AuthStatus.loading;
+
+      final result = await AuthManager.instance.authenticateWithUsername(
+        username: username,
+        password: password,
+        captcha: captcha,
+        captchaSessionId: captchaSessionId,
+        context: context,
+      );
+
+      if (result.isSuccess && result.data != null) {
+        await _setTokenData(result.data!);
+        debugPrint('用户名密码登录成功');
+        return true;
+      } else {
+        _authStatus.value = AuthStatus.unauthenticated;
+        debugPrint('用户名密码登录失败: ${result.msg}');
+        return false;
+      }
+    } catch (e) {
+      _authStatus.value = AuthStatus.unauthenticated;
+      debugPrint('用户名密码登录异常: $e');
+      return false;
+    }
+  }
+
+  /// 用户名密码登录（返回详细结果）
+  Future<CommonResult<LoginResponse>> loginWithUsernameDetailed({
+    required String username,
+    required String password,
+    required String captcha,
+    required String captchaSessionId,
+    Map<String, Object>? context,
+  }) async {
+    try {
+      _authStatus.value = AuthStatus.loading;
+
+      final result = await AuthManager.instance.authenticateWithUsername(
+        username: username,
+        password: password,
+        captcha: captcha,
+        captchaSessionId: captchaSessionId,
+        context: context,
+      );
+
+      if (result.isSuccess && result.data != null) {
+        await _setTokenData(result.data!);
+        debugPrint('用户名密码登录成功');
+      } else {
+        _authStatus.value = AuthStatus.unauthenticated;
+        debugPrint('用户名密码登录失败: ${result.msg}');
+      }
+
+      return result;
+    } catch (e) {
+      _authStatus.value = AuthStatus.unauthenticated;
+      debugPrint('用户名密码登录异常: $e');
+      return CommonResult.networkError(msg: '登录异常: $e');
+    }
+  }
+
+  /// 登录（保持向后兼容）
   Future<bool> login(LoginRequest request) async {
     try {
       _authStatus.value = AuthStatus.loading;
@@ -130,7 +209,7 @@ class AuthService extends GetxController {
         return false;
       }
     } catch (e) {
-      print('登录失败: $e');
+      debugPrint('登录失败: $e');
       _authStatus.value = AuthStatus.unauthenticated;
       return false;
     }
@@ -155,7 +234,7 @@ class AuthService extends GetxController {
         return false;
       }
     } catch (e) {
-      print('注册失败: $e');
+      debugPrint('注册失败: $e');
       _authStatus.value = AuthStatus.unauthenticated;
       return false;
     }
@@ -169,7 +248,7 @@ class AuthService extends GetxController {
         await NetworkService.instance.post('/auth/logout');
       }
     } catch (e) {
-      print('服务器退出登录失败: $e');
+      debugPrint('服务器退出登录失败: $e');
     } finally {
       // 清除本地认证数据
       await _clearAuthData();
@@ -198,7 +277,7 @@ class AuthService extends GetxController {
         return false;
       }
     } catch (e) {
-      print('刷新Token失败: $e');
+      debugPrint('刷新Token失败: $e');
       await logout();
       return false;
     }
@@ -222,7 +301,7 @@ class AuthService extends GetxController {
       }
       return false;
     } catch (e) {
-      print('更新用户信息失败: $e');
+      debugPrint('更新用户信息失败: $e');
       return false;
     }
   }
@@ -240,7 +319,7 @@ class AuthService extends GetxController {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('修改密码失败: $e');
+      debugPrint('修改密码失败: $e');
       return false;
     }
   }
@@ -255,7 +334,7 @@ class AuthService extends GetxController {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('发送重置密码邮件失败: $e');
+      debugPrint('发送重置密码邮件失败: $e');
       return false;
     }
   }
@@ -273,7 +352,7 @@ class AuthService extends GetxController {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('重置密码失败: $e');
+      debugPrint('重置密码失败: $e');
       return false;
     }
   }
@@ -288,7 +367,7 @@ class AuthService extends GetxController {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('发送验证码失败: $e');
+      debugPrint('发送验证码失败: $e');
       return false;
     }
   }
@@ -303,6 +382,19 @@ class AuthService extends GetxController {
     // 保存到本地存储
     await StorageService.instance.setToken(_accessToken.value);
     await _saveUserInfo();
+  }
+
+  /// 设置Token数据（简化版，仅处理token）
+  Future<void> _setTokenData(LoginResponse loginResponse) async {
+    _accessToken.value = loginResponse.token;
+    _refreshToken.value = ''; // 简化版本暂时不处理refresh token
+    _currentUser.value = null; // 简化版本暂时不处理用户信息
+    _authStatus.value = AuthStatus.authenticated;
+
+    // 保存到本地存储
+    await StorageService.instance.setToken(_accessToken.value);
+
+    debugPrint('Token已保存: ${loginResponse.hasToken ? '成功' : '失败'}');
   }
 
   /// 清除认证数据

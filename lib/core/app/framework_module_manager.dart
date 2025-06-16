@@ -62,7 +62,7 @@ class FrameworkModuleManager {
 
       // 初始化路由管理器
       await AppRouteManager.instance.initialize(
-        routes: DeclarativePermissionRoutes.getAllRoutes(),
+        routes: [],
         routeGroups: [],
         validateRoutes: true,
       );

@@ -19,7 +19,8 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
           : DateTime.parse(json['birthday'] as String),
       address: json['address'] as String?,
       bio: json['bio'] as String?,
-      status: $enumDecode(_$UserStatusEnumMap, json['status']),
+      status: $enumDecodeNullable(_$UserStatusEnumMap, json['status']) ??
+          UserStatus.active,
       emailVerified: json['email_verified'] as bool? ?? false,
       phoneVerified: json['phone_verified'] as bool? ?? false,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -29,34 +30,26 @@ UserModel _$UserModelFromJson(Map<String, dynamic> json) => UserModel(
           : DateTime.parse(json['last_login_at'] as String),
     );
 
-Map<String, dynamic> _$UserModelToJson(UserModel instance) {
-  final val = <String, dynamic>{
-    'id': instance.id,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('username', instance.username);
-  writeNotNull('email', instance.email);
-  writeNotNull('phone', instance.phone);
-  writeNotNull('nickname', instance.nickname);
-  writeNotNull('avatar', instance.avatar);
-  writeNotNull('gender', _$GenderEnumMap[instance.gender]);
-  writeNotNull('birthday', instance.birthday?.toIso8601String());
-  writeNotNull('address', instance.address);
-  writeNotNull('bio', instance.bio);
-  val['status'] = _$UserStatusEnumMap[instance.status]!;
-  val['email_verified'] = instance.emailVerified;
-  val['phone_verified'] = instance.phoneVerified;
-  val['created_at'] = instance.createdAt.toIso8601String();
-  val['updated_at'] = instance.updatedAt.toIso8601String();
-  writeNotNull('last_login_at', instance.lastLoginAt?.toIso8601String());
-  return val;
-}
+Map<String, dynamic> _$UserModelToJson(UserModel instance) => <String, dynamic>{
+      'id': instance.id,
+      if (instance.username case final value?) 'username': value,
+      if (instance.email case final value?) 'email': value,
+      if (instance.phone case final value?) 'phone': value,
+      if (instance.nickname case final value?) 'nickname': value,
+      if (instance.avatar case final value?) 'avatar': value,
+      if (_$GenderEnumMap[instance.gender] case final value?) 'gender': value,
+      if (instance.birthday?.toIso8601String() case final value?)
+        'birthday': value,
+      if (instance.address case final value?) 'address': value,
+      if (instance.bio case final value?) 'bio': value,
+      'status': _$UserStatusEnumMap[instance.status]!,
+      'email_verified': instance.emailVerified,
+      'phone_verified': instance.phoneVerified,
+      'created_at': instance.createdAt.toIso8601String(),
+      'updated_at': instance.updatedAt.toIso8601String(),
+      if (instance.lastLoginAt?.toIso8601String() case final value?)
+        'last_login_at': value,
+    };
 
 const _$GenderEnumMap = {
   Gender.male: 'male',
@@ -95,84 +88,31 @@ RegisterRequest _$RegisterRequestFromJson(Map<String, dynamic> json) =>
       verificationCode: json['verification_code'] as String?,
     );
 
-Map<String, dynamic> _$RegisterRequestToJson(RegisterRequest instance) {
-  final val = <String, dynamic>{};
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('username', instance.username);
-  writeNotNull('email', instance.email);
-  writeNotNull('phone', instance.phone);
-  val['password'] = instance.password;
-  val['confirm_password'] = instance.confirmPassword;
-  writeNotNull('nickname', instance.nickname);
-  writeNotNull('verification_code', instance.verificationCode);
-  return val;
-}
+Map<String, dynamic> _$RegisterRequestToJson(RegisterRequest instance) =>
+    <String, dynamic>{
+      if (instance.username case final value?) 'username': value,
+      if (instance.email case final value?) 'email': value,
+      if (instance.phone case final value?) 'phone': value,
+      'password': instance.password,
+      'confirm_password': instance.confirmPassword,
+      if (instance.nickname case final value?) 'nickname': value,
+      if (instance.verificationCode case final value?)
+        'verification_code': value,
+    };
 
 AuthResponse _$AuthResponseFromJson(Map<String, dynamic> json) => AuthResponse(
       accessToken: json['access_token'] as String,
       refreshToken: json['refresh_token'] as String?,
       tokenType: json['token_type'] as String? ?? 'Bearer',
-      expiresIn: json['expires_in'] as int,
+      expiresIn: (json['expires_in'] as num).toInt(),
       user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$AuthResponseToJson(AuthResponse instance) {
-  final val = <String, dynamic>{
-    'access_token': instance.accessToken,
-  };
-
-  void writeNotNull(String key, dynamic value) {
-    if (value != null) {
-      val[key] = value;
-    }
-  }
-
-  writeNotNull('refresh_token', instance.refreshToken);
-  val['token_type'] = instance.tokenType;
-  val['expires_in'] = instance.expiresIn;
-  val['user'] = instance.user.toJson();
-  return val;
-}
-
-T $enumDecode<T>(
-  Map<T, Object> enumValues,
-  Object? source, {
-  T? unknownValue,
-}) {
-  if (source == null) {
-    throw ArgumentError(
-      'A value must be provided. Supported values: '
-      '${enumValues.values.join(', ')}',
-    );
-  }
-
-  return enumValues.entries.singleWhere(
-    (e) => e.value == source,
-    orElse: () {
-      if (unknownValue == null) {
-        throw ArgumentError(
-          '`$source` is not one of the supported values: '
-          '${enumValues.values.join(', ')}',
-        );
-      }
-      return MapEntry(unknownValue, enumValues.values.first);
-    },
-  ).key;
-}
-
-T? $enumDecodeNullable<T>(
-  Map<T, Object> enumValues,
-  Object? source, {
-  T? unknownValue,
-}) {
-  if (source == null) {
-    return null;
-  }
-  return $enumDecode<T>(enumValues, source, unknownValue: unknownValue);
-}
+Map<String, dynamic> _$AuthResponseToJson(AuthResponse instance) =>
+    <String, dynamic>{
+      'access_token': instance.accessToken,
+      if (instance.refreshToken case final value?) 'refresh_token': value,
+      'token_type': instance.tokenType,
+      'expires_in': instance.expiresIn,
+      'user': instance.user.toJson(),
+    };

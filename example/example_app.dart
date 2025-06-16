@@ -6,9 +6,14 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_application_base/core/permissions/permission_service.dart';
 import 'package:flutter_application_base/core/router/middlewares/permission_middleware.dart';
+
 import 'package:get/get.dart';
 
+import 'auth_test_demo.dart';
+import 'config_usage_example.dart';
+import 'http_config_strategy_example.dart';
 import 'pages/declarative_permission_demo_pages.dart';
+import 'pages/enhanced_login_demo_page.dart';
 import 'routes/declarative_permission_routes.dart';
 
 /// 示例应用主类
@@ -27,6 +32,11 @@ class ExampleApp extends StatelessWidget {
           name: '/declarative',
           page: () => const DeclarativePermissionHomePage(),
         ),
+        GetPage(
+          name: '/auth/enhanced-login',
+          page: () => const EnhancedLoginDemoPage(),
+        ),
+        GetPage(name: '/auth/test', page: () => const AuthTestDemoPage()),
         GetPage(
           name: '/declarative/camera',
           page: () => const DeclarativeCameraPage(),
@@ -52,8 +62,16 @@ class ExampleApp extends StatelessWidget {
                 .build(),
           ],
         ),
+        GetPage(
+          name: '/config/configExample',
+          page: () => const ConfigUsageExamplePage(),
+        ),
+        GetPage(
+          name: '/config/httpConfigExample',
+          page: () => const HttpConfigStrategyExamplePage(),
+        ),
       ],
-      initialRoute: '/declarative',
+      initialRoute: '/auth/enhanced-login',
 
       // 主题配置
       theme: _buildLightTheme(),

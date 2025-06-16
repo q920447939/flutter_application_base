@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../features/auth/pages/login_page.dart';
 import '../../features/auth/pages/register_page.dart';
+
 import '../../features/splash/splash_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/profile/pages/profile_page.dart';
@@ -25,6 +26,7 @@ import 'auth_middleware.dart';
 class AppRoutes {
   static const String splash = '/';
   static const String login = '/login';
+  static const String enhancedLogin = '/enhanced-login';
   static const String register = '/register';
   static const String home = '/home';
   static const String profile = '/profile';
@@ -43,6 +45,7 @@ class AppRouter {
 
     // 认证相关路由
     GetPage(name: AppRoutes.login, page: () => const LoginPage()),
+    // 增强版登录页面已移至example目录
     GetPage(name: AppRoutes.register, page: () => const RegisterPage()),
 
     // 主应用路由
