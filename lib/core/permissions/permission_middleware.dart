@@ -9,8 +9,8 @@ import 'package:get/get.dart';
 import 'permission_initializer.dart';
 import 'permission_config.dart';
 
-/// 权限中间件
-class PermissionMiddleware extends GetMiddleware {
+/// 权限守卫中间件
+class PermissionGuardMiddleware extends GetMiddleware {
   @override
   int? get priority => 1;
 

@@ -180,7 +180,7 @@ class PermissionRouteFeature implements IRouteFeature {
 
 /// 权限路由功能特性构建器
 class PermissionRouteFeatureBuilder {
-  PermissionMiddlewareConfig _config = const PermissionMiddlewareConfig();
+  PermissionMiddlewareConfig _config = PermissionMiddlewareConfig();
 
   /// 设置必需权限
   PermissionRouteFeatureBuilder requiredPermissions(

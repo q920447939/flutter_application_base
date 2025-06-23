@@ -451,21 +451,21 @@ class PermissionInitializer {
     PermissionResult result,
   ) async {
     switch (config.deniedStrategy) {
-      case PermissionDeniedStrategy.showDialog:
+      case PermissionConfigDeniedStrategy.showDialog:
         await _showPermissionDeniedDialog(config, result);
         break;
-      case PermissionDeniedStrategy.showSnackbar:
+      case PermissionConfigDeniedStrategy.showSnackbar:
         _showPermissionDeniedSnackbar(config);
         break;
-      case PermissionDeniedStrategy.exitApp:
+      case PermissionConfigDeniedStrategy.exitApp:
         if (config.isRequired) {
           await _exitApp('必要权限 ${config.title} 未授权');
         }
         break;
-      case PermissionDeniedStrategy.disableFeature:
+      case PermissionConfigDeniedStrategy.disableFeature:
         // 功能降级处理，由具体业务实现
         break;
-      case PermissionDeniedStrategy.silent:
+      case PermissionConfigDeniedStrategy.silent:
         // 静默处理，不做任何操作
         break;
     }
@@ -474,10 +474,10 @@ class PermissionInitializer {
   /// 处理可选权限被拒绝
   Future<void> _handleOptionalPermissionDenied(PermissionConfig config) async {
     switch (config.deniedStrategy) {
-      case PermissionDeniedStrategy.showSnackbar:
+      case PermissionConfigDeniedStrategy.showSnackbar:
         _showPermissionDeniedSnackbar(config);
         break;
-      case PermissionDeniedStrategy.disableFeature:
+      case PermissionConfigDeniedStrategy.disableFeature:
         // 功能降级处理
         break;
       default:

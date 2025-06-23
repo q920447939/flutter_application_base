@@ -9,4 +9,11 @@ export 'permission_helper.dart';
 export 'permission_config.dart';
 export 'permission_initializer.dart';
 export 'platform_detector.dart';
-export 'permission_middleware.dart';
+export 'permission_middleware.dart'
+    show
+        PermissionGuardMiddleware,
+        PermissionChecker,
+        RequiresPermission,
+        PermissionMixin,
+        PermissionController,
+        PermissionUtils;

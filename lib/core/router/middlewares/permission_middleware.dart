@@ -9,8 +9,8 @@ import 'package:get/get.dart';
 import '../../permissions/permission_service.dart';
 import 'base_middleware.dart';
 
-/// 权限拒绝处理策略枚举
-enum PermissionDeniedStrategy {
+/// 路由权限拒绝处理策略枚举
+enum RoutePermissionDeniedStrategy {
   /// 返回上一页面
   goBack,
 
@@ -69,7 +69,7 @@ class PermissionMiddlewareConfig {
   final int maxAttempts;
 
   /// 权限拒绝处理策略
-  final PermissionDeniedStrategy deniedStrategy;
+  final RoutePermissionDeniedStrategy deniedStrategy;
 
   /// 自定义重定向路由（当策略为redirectTo时使用）
   final String? customRedirectRoute;
@@ -92,7 +92,7 @@ class PermissionMiddlewareConfig {
     this.allowSkipOptional = true,
     this.deniedRedirectRoute,
     this.maxAttempts = 3,
-    this.deniedStrategy = PermissionDeniedStrategy.goBack,
+    this.deniedStrategy = RoutePermissionDeniedStrategy.goBack,
     this.customRedirectRoute,
     this.onPermissionDenied,
     this.onPermissionGranted,
@@ -116,7 +116,7 @@ class PermissionMiddlewareConfig {
     bool? allowSkipOptional,
     String? deniedRedirectRoute,
     int? maxAttempts,
-    PermissionDeniedStrategy? deniedStrategy,
+    RoutePermissionDeniedStrategy? deniedStrategy,
     String? customRedirectRoute,
     Future<bool> Function(List<AppPermission>)? onPermissionDenied,
     void Function(List<AppPermission>)? onPermissionGranted,
@@ -441,7 +441,7 @@ class PermissionMiddleware extends BaseRouteMiddleware {
 
 /// 权限中间件构建器
 class PermissionMiddlewareBuilder {
-  PermissionMiddlewareConfig _config = const PermissionMiddlewareConfig();
+  PermissionMiddlewareConfig _config = PermissionMiddlewareConfig();
 
   /// 设置必需权限
   PermissionMiddlewareBuilder requiredPermissions(
@@ -485,7 +485,7 @@ class PermissionMiddlewareBuilder {
 
   /// 设置权限拒绝处理策略
   PermissionMiddlewareBuilder deniedStrategy(
-    PermissionDeniedStrategy strategy,
+    RoutePermissionDeniedStrategy strategy,
   ) {
     _config = _config.copyWith(deniedStrategy: strategy);
     return this;

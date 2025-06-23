@@ -9,55 +9,55 @@ library;
 
 import 'package:get/get.dart';
 
-/// 页面状态枚举
-enum PageState { initial, loading, success, error, empty }
+/// 控制器页面状态枚举
+enum ControllerPageState { initial, loading, success, error, empty }
 
 /// 基础控制器抽象类
 abstract class BaseController extends GetxController {
   /// 页面状态
-  final Rx<PageState> _pageState = PageState.initial.obs;
-  PageState get pageState => _pageState.value;
+  final Rx<ControllerPageState> _pageState = ControllerPageState.initial.obs;
+  ControllerPageState get pageState => _pageState.value;
 
   /// 错误信息
   final RxString _errorMessage = ''.obs;
   String get errorMessage => _errorMessage.value;
 
   /// 是否正在加载
-  bool get isLoading => pageState == PageState.loading;
+  bool get isLoading => pageState == ControllerPageState.loading;
 
   /// 是否加载成功
-  bool get isSuccess => pageState == PageState.success;
+  bool get isSuccess => pageState == ControllerPageState.success;
 
   /// 是否有错误
-  bool get hasError => pageState == PageState.error;
+  bool get hasError => pageState == ControllerPageState.error;
 
   /// 是否为空状态
-  bool get isEmpty => pageState == PageState.empty;
+  bool get isEmpty => pageState == ControllerPageState.empty;
 
   /// 设置加载状态
   void setLoading() {
-    _pageState.value = PageState.loading;
+    _pageState.value = ControllerPageState.loading;
   }
 
   /// 设置成功状态
   void setSuccess() {
-    _pageState.value = PageState.success;
+    _pageState.value = ControllerPageState.success;
   }
 
   /// 设置错误状态
   void setError(String message) {
-    _pageState.value = PageState.error;
+    _pageState.value = ControllerPageState.error;
     _errorMessage.value = message;
   }
 
   /// 设置空状态
   void setEmpty() {
-    _pageState.value = PageState.empty;
+    _pageState.value = ControllerPageState.empty;
   }
 
   /// 重置状态
   void resetState() {
-    _pageState.value = PageState.initial;
+    _pageState.value = ControllerPageState.initial;
     _errorMessage.value = '';
   }
 

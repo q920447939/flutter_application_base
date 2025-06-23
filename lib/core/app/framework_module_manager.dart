@@ -16,7 +16,6 @@ import '../modules/module_registry.dart';
 class FrameworkModuleManager {
   static final Map<String, ModuleRuntimeInfo> _modules = {};
   static bool _initialized = false;
-  static bool _initializing = false;
 
   /// 注册模块
   static void registerModule(FrameworkModule module) {
@@ -44,17 +43,6 @@ class FrameworkModuleManager {
   static Future<void> initializeAll() async {
     // 确保Flutter绑定初始化
     WidgetsFlutterBinding.ensureInitialized();
-    if (_initialized) {
-      debugPrint('模块管理器已初始化，跳过重复初始化');
-      return;
-    }
-
-    if (_initializing) {
-      debugPrint('模块管理器正在初始化中...');
-      return;
-    }
-
-    _initializing = true;
 
     try {
       debugPrint('开始初始化框架模块...');
@@ -301,9 +289,6 @@ class FrameworkModuleManager {
 
   /// 检查是否已初始化
   static bool get isInitialized => _initialized;
-
-  /// 检查是否正在初始化
-  static bool get isInitializing => _initializing;
 
   /// 销毁所有模块
   static Future<void> disposeAll() async {

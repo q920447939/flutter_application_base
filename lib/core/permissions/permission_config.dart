@@ -5,8 +5,6 @@ library;
 
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import '../storage/storage_service.dart';
-import '../network/network_service.dart';
 import 'permission_service.dart';
 import 'platform_detector.dart';
 
@@ -32,7 +30,7 @@ class PermissionConfig {
   final bool allowSkip;
 
   /// 权限被拒绝后的处理策略
-  final PermissionDeniedStrategy deniedStrategy;
+  final PermissionConfigDeniedStrategy deniedStrategy;
 
   /// 最大重试次数
   final int maxRetryCount;
@@ -48,7 +46,7 @@ class PermissionConfig {
     this.customTitle,
     this.customDescription,
     this.allowSkip = true,
-    this.deniedStrategy = PermissionDeniedStrategy.showDialog,
+    this.deniedStrategy = PermissionConfigDeniedStrategy.showDialog,
     this.maxRetryCount = 3,
     this.relatedRoutes = const [],
   });
@@ -81,7 +79,7 @@ class PermissionConfig {
       customTitle: json['customTitle'],
       customDescription: json['customDescription'],
       allowSkip: json['allowSkip'] ?? true,
-      deniedStrategy: PermissionDeniedStrategy.values.firstWhere(
+      deniedStrategy: PermissionConfigDeniedStrategy.values.firstWhere(
         (e) =>
             e.toString().split('.').last ==
             (json['deniedStrategy'] ?? 'showDialog'),
@@ -137,8 +135,8 @@ class PermissionConfig {
   }
 }
 
-/// 权限被拒绝后的处理策略
-enum PermissionDeniedStrategy {
+/// 权限配置被拒绝后的处理策略
+enum PermissionConfigDeniedStrategy {
   showDialog, // 显示对话框
   showSnackbar, // 显示提示条
   exitApp, // 退出应用（仅限必要权限）
@@ -167,12 +165,28 @@ class PermissionConfigManager {
   /// 远程配置URL（可配置）
   String? _remoteConfigUrl;
 
+  /// 存储服务实例（通过依赖注入设置）
+  dynamic _storageService;
+
+  /// 网络服务实例（通过依赖注入设置）
+  dynamic _networkService;
+
   /// 获取所有权限配置
   List<PermissionConfig> get configs => List.unmodifiable(_configs);
 
   /// 设置远程配置URL
   void setRemoteConfigUrl(String url) {
     _remoteConfigUrl = url;
+  }
+
+  /// 设置存储服务（依赖注入）
+  void setStorageService(dynamic storageService) {
+    _storageService = storageService;
+  }
+
+  /// 设置网络服务（依赖注入）
+  void setNetworkService(dynamic networkService) {
+    _networkService = networkService;
   }
 
   /// 初始化权限配置
@@ -206,7 +220,8 @@ class PermissionConfigManager {
   /// 从缓存加载配置
   Future<void> _loadFromCache() async {
     try {
-      final cachedData = StorageService.instance.getString(_cacheKey);
+      if (_storageService == null) return;
+      final cachedData = _storageService.getString(_cacheKey);
       if (cachedData != null) {
         final List<dynamic> jsonList = jsonDecode(cachedData);
         _configs =
@@ -239,7 +254,8 @@ class PermissionConfigManager {
   /// 从远程加载配置
   Future<void> _loadFromRemote() async {
     try {
-      final response = await NetworkService.instance.get(_remoteConfigUrl!);
+      if (_networkService == null || _remoteConfigUrl == null) return;
+      final response = await _networkService.get(_remoteConfigUrl!);
       if (response.statusCode == 200 && response.data != null) {
         final List<dynamic> permissionsList = response.data['permissions'];
         final remoteConfigs =
@@ -286,8 +302,9 @@ class PermissionConfigManager {
   /// 保存到缓存
   Future<void> _saveToCache() async {
     try {
+      if (_storageService == null) return;
       final jsonList = _configs.map((config) => config.toJson()).toList();
-      await StorageService.instance.setString(_cacheKey, jsonEncode(jsonList));
+      await _storageService.setString(_cacheKey, jsonEncode(jsonList));
     } catch (e) {
       // 缓存保存失败，忽略错误
     }
@@ -303,7 +320,7 @@ class PermissionConfigManager {
         triggers: [PermissionTrigger.appLaunch],
         supportedPlatforms: [PlatformType.mobile],
         allowSkip: false,
-        deniedStrategy: PermissionDeniedStrategy.exitApp,
+        deniedStrategy: PermissionConfigDeniedStrategy.exitApp,
       ),
 
       // 移动端可选权限
@@ -313,7 +330,7 @@ class PermissionConfigManager {
         triggers: [PermissionTrigger.actionTrigger],
         supportedPlatforms: [PlatformType.mobile],
         allowSkip: true,
-        deniedStrategy: PermissionDeniedStrategy.disableFeature,
+        deniedStrategy: PermissionConfigDeniedStrategy.disableFeature,
       ),
 
       const PermissionConfig(
@@ -325,7 +342,7 @@ class PermissionConfigManager {
         ],
         supportedPlatforms: [PlatformType.mobile],
         allowSkip: true,
-        deniedStrategy: PermissionDeniedStrategy.showDialog,
+        deniedStrategy: PermissionConfigDeniedStrategy.showDialog,
       ),
 
       // Web端权限
@@ -335,7 +352,7 @@ class PermissionConfigManager {
         triggers: [PermissionTrigger.actionTrigger],
         supportedPlatforms: [PlatformType.web],
         allowSkip: true,
-        deniedStrategy: PermissionDeniedStrategy.disableFeature,
+        deniedStrategy: PermissionConfigDeniedStrategy.disableFeature,
       ),
 
       // 桌面端权限
@@ -345,7 +362,7 @@ class PermissionConfigManager {
         triggers: [PermissionTrigger.appLaunch],
         supportedPlatforms: [PlatformType.desktop],
         allowSkip: false,
-        deniedStrategy: PermissionDeniedStrategy.exitApp,
+        deniedStrategy: PermissionConfigDeniedStrategy.exitApp,
       ),
     ];
   }
@@ -408,7 +425,9 @@ class PermissionConfigManager {
 
   /// 清除缓存
   Future<void> clearCache() async {
-    await StorageService.instance.remove(_cacheKey);
+    if (_storageService != null) {
+      await _storageService.remove(_cacheKey);
+    }
   }
 
   /// 添加或更新权限配置

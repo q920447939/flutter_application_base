@@ -11,8 +11,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-/// 缓存策略枚举
-enum CacheStrategy {
+/// 存储缓存策略枚举
+enum StorageCacheStrategy {
   /// 内存缓存 - 用于频繁访问的敏感数据
   memory,
 
@@ -49,7 +49,7 @@ class StorageService implements ISyncStorage {
   final Map<String, String> _memoryCache = {};
 
   // 缓存策略配置
-  final Map<String, CacheStrategy> _cacheStrategies = {};
+  final Map<String, StorageCacheStrategy> _cacheStrategies = {};
 
   StorageService._internal();
 
@@ -80,15 +80,15 @@ class StorageService implements ISyncStorage {
   /// 初始化缓存策略
   void _initializeCacheStrategies() {
     // 为敏感数据配置内存缓存策略
-    _cacheStrategies['user_token'] = CacheStrategy.memory;
-    _cacheStrategies['refresh_token'] = CacheStrategy.memory;
-    _cacheStrategies['user_info'] = CacheStrategy.hybrid;
+    _cacheStrategies['user_token'] = StorageCacheStrategy.memory;
+    _cacheStrategies['refresh_token'] = StorageCacheStrategy.memory;
+    _cacheStrategies['user_info'] = StorageCacheStrategy.hybrid;
 
     // 为应用设置配置持久化缓存
     _cacheStrategies.addAll({
-      'theme_mode': CacheStrategy.persistent,
-      'language': CacheStrategy.persistent,
-      'notification_enabled': CacheStrategy.persistent,
+      'theme_mode': StorageCacheStrategy.persistent,
+      'language': StorageCacheStrategy.persistent,
+      'notification_enabled': StorageCacheStrategy.persistent,
     });
   }
 
@@ -349,14 +349,14 @@ class StorageService implements ISyncStorage {
 
   @override
   String? getStringSync(String key) {
-    final strategy = _cacheStrategies[key] ?? CacheStrategy.persistent;
+    final strategy = _cacheStrategies[key] ?? StorageCacheStrategy.persistent;
 
     switch (strategy) {
-      case CacheStrategy.memory:
+      case StorageCacheStrategy.memory:
         return _memoryCache[key];
-      case CacheStrategy.persistent:
+      case StorageCacheStrategy.persistent:
         return getString(key);
-      case CacheStrategy.hybrid:
+      case StorageCacheStrategy.hybrid:
         // 优先从内存缓存获取，如果没有则从持久化存储获取
         return _memoryCache[key] ?? getString(key);
     }
@@ -364,18 +364,18 @@ class StorageService implements ISyncStorage {
 
   @override
   bool setStringSync(String key, String value) {
-    final strategy = _cacheStrategies[key] ?? CacheStrategy.persistent;
+    final strategy = _cacheStrategies[key] ?? StorageCacheStrategy.persistent;
 
     switch (strategy) {
-      case CacheStrategy.memory:
+      case StorageCacheStrategy.memory:
         _memoryCache[key] = value;
         return true;
-      case CacheStrategy.persistent:
+      case StorageCacheStrategy.persistent:
         // 注意：SharedPreferences的set方法是异步的，这里只能返回true
         // 实际的持久化操作需要异步进行
         setString(key, value);
         return true;
-      case CacheStrategy.hybrid:
+      case StorageCacheStrategy.hybrid:
         _memoryCache[key] = value;
         setString(key, value);
         return true;
@@ -384,16 +384,16 @@ class StorageService implements ISyncStorage {
 
   @override
   bool removeSync(String key) {
-    final strategy = _cacheStrategies[key] ?? CacheStrategy.persistent;
+    final strategy = _cacheStrategies[key] ?? StorageCacheStrategy.persistent;
 
     switch (strategy) {
-      case CacheStrategy.memory:
+      case StorageCacheStrategy.memory:
         _memoryCache.remove(key);
         return true;
-      case CacheStrategy.persistent:
+      case StorageCacheStrategy.persistent:
         remove(key);
         return true;
-      case CacheStrategy.hybrid:
+      case StorageCacheStrategy.hybrid:
         _memoryCache.remove(key);
         remove(key);
         return true;
@@ -402,14 +402,14 @@ class StorageService implements ISyncStorage {
 
   @override
   bool containsKeySync(String key) {
-    final strategy = _cacheStrategies[key] ?? CacheStrategy.persistent;
+    final strategy = _cacheStrategies[key] ?? StorageCacheStrategy.persistent;
 
     switch (strategy) {
-      case CacheStrategy.memory:
+      case StorageCacheStrategy.memory:
         return _memoryCache.containsKey(key);
-      case CacheStrategy.persistent:
+      case StorageCacheStrategy.persistent:
         return containsKey(key);
-      case CacheStrategy.hybrid:
+      case StorageCacheStrategy.hybrid:
         return _memoryCache.containsKey(key) || containsKey(key);
     }
   }
@@ -486,12 +486,12 @@ class StorageService implements ISyncStorage {
   }
 
   /// 获取缓存策略
-  CacheStrategy getCacheStrategy(String key) {
-    return _cacheStrategies[key] ?? CacheStrategy.persistent;
+  StorageCacheStrategy getCacheStrategy(String key) {
+    return _cacheStrategies[key] ?? StorageCacheStrategy.persistent;
   }
 
   /// 设置缓存策略
-  void setCacheStrategy(String key, CacheStrategy strategy) {
+  void setCacheStrategy(String key, StorageCacheStrategy strategy) {
     _cacheStrategies[key] = strategy;
   }
 }

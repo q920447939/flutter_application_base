@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_base/flutter_application_base.dart';
 
-void main() {
+Future<void> main() async {
+  await FrameworkModuleManager.initializeAll();
+
   runApp(const MyApp());
 }
 

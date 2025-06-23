@@ -1,28 +1,28 @@
 /// 简化的页面基类
-/// 
+///
 /// 提供纯业务导向的页面基类，不包含任何框架功能逻辑
 library;
 
 import 'package:flutter/material.dart';
 
 /// 简化的无状态页面基类
-/// 
+///
 /// 专注于业务逻辑实现，框架功能由路由层处理
 abstract class SimpleStatelessPage extends StatelessWidget {
   const SimpleStatelessPage({super.key});
 
   /// 构建页面内容
-  /// 
+  ///
   /// 子类只需要实现这个方法，专注于业务逻辑
   Widget buildContent(BuildContext context);
 
   /// 页面初始化回调
-  /// 
+  ///
   /// 在页面构建前调用，可用于初始化业务数据
   void onPageInit(BuildContext context) {}
 
   /// 页面销毁回调
-  /// 
+  ///
   /// 在页面销毁时调用，可用于清理业务资源
   void onPageDispose() {}
 
@@ -30,14 +30,14 @@ abstract class SimpleStatelessPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // 执行页面初始化
     onPageInit(context);
-    
+
     // 构建页面内容
     return buildContent(context);
   }
 }
 
 /// 简化的有状态页面基类
-/// 
+///
 /// 专注于业务逻辑实现，框架功能由路由层处理
 abstract class SimpleStatefulPage extends StatefulWidget {
   const SimpleStatefulPage({super.key});
@@ -46,35 +46,36 @@ abstract class SimpleStatefulPage extends StatefulWidget {
   State<SimpleStatefulPage> createState() => createPageState();
 
   /// 创建页面状态
-  /// 
+  ///
   /// 子类需要实现这个方法来创建对应的状态类
   SimpleStatefulPageState createPageState();
 }
 
 /// 简化的有状态页面状态基类
-/// 
+///
 /// 提供基础的状态管理功能，专注于业务逻辑
-abstract class SimpleStatefulPageState<T extends SimpleStatefulPage> extends State<T> {
+abstract class SimpleStatefulPageState<T extends SimpleStatefulPage>
+    extends State<T> {
   /// 页面是否已初始化
   bool _isInitialized = false;
 
   /// 构建页面内容
-  /// 
+  ///
   /// 子类只需要实现这个方法，专注于业务逻辑
   Widget buildContent(BuildContext context);
 
   /// 页面初始化回调
-  /// 
+  ///
   /// 在页面首次构建时调用，可用于初始化业务数据
   Future<void> onPageInit() async {}
 
   /// 页面销毁回调
-  /// 
+  ///
   /// 在页面销毁时调用，可用于清理业务资源
   void onPageDispose() {}
 
   /// 页面刷新回调
-  /// 
+  ///
   /// 当页面需要刷新时调用
   Future<void> onPageRefresh() async {}
 
@@ -121,7 +122,7 @@ abstract class SimpleStatefulPageState<T extends SimpleStatefulPage> extends Sta
   }
 
   /// 安全的setState调用
-  /// 
+  ///
   /// 确保在组件未销毁时才调用setState
   void safeSetState(VoidCallback fn) {
     if (mounted) {
@@ -134,15 +135,16 @@ abstract class SimpleStatefulPageState<T extends SimpleStatefulPage> extends Sta
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        content: Row(
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(width: 16),
-            Text(message),
-          ],
-        ),
-      ),
+      builder:
+          (context) => AlertDialog(
+            content: Row(
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(width: 16),
+                Text(message),
+              ],
+            ),
+          ),
     );
   }
 
@@ -196,32 +198,37 @@ abstract class SimpleStatefulPageState<T extends SimpleStatefulPage> extends Sta
   }) async {
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(cancelText),
+      builder:
+          (context) => AlertDialog(
+            title: Text(title),
+            content: Text(content),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(cancelText),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(confirmText),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(confirmText),
-          ),
-        ],
-      ),
     );
-    
+
     return result ?? false;
   }
 }
 
 /// 页面混入
-/// 
+///
 /// 提供常用的页面功能混入
 mixin PageMixin {
   /// 显示提示消息
-  void showMessage(BuildContext context, String message, {bool isError = false}) {
+  void showMessage(
+    BuildContext context,
+    String message, {
+    bool isError = false,
+  }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -235,15 +242,16 @@ mixin PageMixin {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        content: Row(
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(width: 16),
-            Text(message),
-          ],
-        ),
-      ),
+      builder:
+          (context) => AlertDialog(
+            content: Row(
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(width: 16),
+                Text(message),
+              ],
+            ),
+          ),
     );
   }
 
@@ -292,13 +300,13 @@ mixin PageMixin {
 }
 
 /// 响应式页面混入
-/// 
+///
 /// 提供响应式布局支持
 mixin ResponsiveMixin {
   /// 获取屏幕断点
   ScreenBreakpoint getScreenBreakpoint(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    
+
     if (width < 600) {
       return ScreenBreakpoint.mobile;
     } else if (width < 1024) {
@@ -343,17 +351,17 @@ mixin ResponsiveMixin {
 
 /// 屏幕断点枚举
 enum ScreenBreakpoint {
-  mobile,   // < 600px
-  tablet,   // 600px - 1024px
-  desktop,  // > 1024px
+  mobile, // < 600px
+  tablet, // 600px - 1024px
+  desktop, // > 1024px
 }
 
-/// 页面状态枚举
-enum PageState {
-  loading,    // 加载中
-  loaded,     // 已加载
-  error,      // 错误状态
-  empty,      // 空状态
+/// 简单页面状态枚举
+enum SimplePageState {
+  loading, // 加载中
+  loaded, // 已加载
+  error, // 错误状态
+  empty, // 空状态
 }
 
 /// 页面工具类
