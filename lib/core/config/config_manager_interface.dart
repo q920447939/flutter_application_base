@@ -10,16 +10,16 @@ import 'config_keys.dart';
 class ConfigUpdateResult {
   /// 是否成功
   final bool success;
-  
+
   /// 更新的配置数量
   final int updatedCount;
-  
+
   /// 错误信息
   final String? error;
-  
+
   /// 更新耗时
   final Duration duration;
-  
+
   /// 更新时间戳
   final DateTime timestamp;
 
@@ -63,16 +63,16 @@ class ConfigUpdateResult {
 class ConfigChangeEvent {
   /// 变更的配置键
   final String key;
-  
+
   /// 旧值
   final dynamic oldValue;
-  
+
   /// 新值
   final dynamic newValue;
-  
+
   /// 变更时间
   final DateTime timestamp;
-  
+
   /// 变更来源
   final String source;
 
@@ -129,9 +129,6 @@ abstract class IConfigManager {
   /// 获取最后更新时间
   DateTime? get lastUpdateTime;
 
-  /// 获取配置统计信息
-  Map<String, dynamic> getStatistics();
-
   /// 启动定时更新任务
   void startPeriodicUpdate({Duration interval = const Duration(minutes: 30)});
 
@@ -142,7 +139,10 @@ abstract class IConfigManager {
   bool get isUpdating;
 
   /// 注册配置变更监听器
-  void addConfigChangeListener(String key, Function(ConfigChangeEvent) listener);
+  void addConfigChangeListener(
+    String key,
+    Function(ConfigChangeEvent) listener,
+  );
 
   /// 移除配置变更监听器
   void removeConfigChangeListener(String key);

@@ -14,12 +14,14 @@ import 'router_module.dart';
 import 'security_module.dart';
 import 'localization_module.dart';
 import 'config_module.dart';
+import '../yaml/yaml_module.dart';
 
 /// 模块注册器
 class ModuleRegistry {
   static final modules = <FrameworkModule>[
     // 按优先级顺序注册
     StorageModule(), // 优先级 5 - 最高优先级
+    YamlModule(), // 优先级 8 - YAML 处理模块
     NetworkModule(), // 优先级 10
     ConfigModule(), // 优先级 12 - 配置模块
     ThemeModule(), // 优先级 15

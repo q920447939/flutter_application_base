@@ -261,14 +261,6 @@ class MiddlewareManager {
         .toList();
   }
 
-  /// 获取中间件统计信息
-  Map<String, dynamic> getStatistics() {
-    final total = _middlewares.length;
-    final enabled = getEnabledMiddlewares().length;
-
-    return {'total': total, 'enabled': enabled, 'disabled': total - enabled};
-  }
-
   /// 获取所有中间件状态
   Map<String, Map<String, dynamic>> getAllStatus() {
     final status = <String, Map<String, dynamic>>{};
@@ -283,11 +275,5 @@ class MiddlewareManager {
   /// 清除所有中间件
   void clear() {
     _middlewares.clear();
-  }
-
-  @override
-  String toString() {
-    final stats = getStatistics();
-    return 'MiddlewareManager(总计: ${stats['total']}, 已启用: ${stats['enabled']})';
   }
 }

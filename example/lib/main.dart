@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_base/core/app/app_init_info.dart';
 import 'package:flutter_application_base/flutter_application_base.dart';
+import 'pages/feature_navigator.dart';
 
 Future<void> main() async {
-  await FrameworkModuleManager.initializeAll();
+  await FrameworkModuleManager.initialize(AppInitInfo(child: const MyApp()));
 
   runApp(const MyApp());
 }
@@ -111,6 +113,19 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FeatureNavigator(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.explore),
+              label: const Text('功能测试导航'),
             ),
           ],
         ),

@@ -1,0 +1,32 @@
+# 应用配置示例文件
+# 支持环境变量替换语法: ${ENV_VAR:default_value}
+
+app:
+  name: ${APP_NAME:Flutter Application Base Example}
+  version: "1.0.0"
+  debug: ${DEBUG_MODE:true}
+  description: "通用 Flutter 应用基础框架示例"
+
+api:
+  base_url: ${API_BASE_URL:https://api.example.com}
+  timeout: 30
+  connect_timeout: 10
+  headers:
+    User-Agent: "Flutter App Example/1.0.0"
+    Accept: "application/json"
+
+features:
+  push_notifications: ${PUSH_ENABLED:true}
+  analytics: ${ANALYTICS_ENABLED:true}
+  crash_reporting: true
+  dark_mode: true
+  offline_mode: false
+
+cache:
+  max_size_mb: 100
+  expire_minutes: 60
+
+logging:
+  level: ${LOG_LEVEL:debug}
+  file_enabled: false
+  console_enabled: true

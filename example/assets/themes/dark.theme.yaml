@@ -1,0 +1,119 @@
+# 深色主题配置示例
+
+colors:
+  # 主要颜色
+  primary: "#2196F3"
+  primary_variant: "#1976D2"
+  secondary: "#FF9800"
+  secondary_variant: "#F57C00"
+  
+  # 背景颜色
+  background: "#121212"
+  surface: "#1E1E1E"
+  card: "#2C2C2C"
+  
+  # 文本颜色
+  on_primary: "#FFFFFF"
+  on_secondary: "#000000"
+  on_background: "#FFFFFF"
+  on_surface: "#FFFFFF"
+  on_error: "#FFFFFF"
+  
+  # 状态颜色
+  error: "#F44336"
+  success: "#4CAF50"
+  warning: "#FF9800"
+  info: "#2196F3"
+  
+  # 边框和分割线
+  border: "#424242"
+  divider: "#616161"
+  
+  # 禁用状态
+  disabled: "#757575"
+  disabled_text: "#9E9E9E"
+
+fonts:
+  # 标题字体
+  heading:
+    family: "Roboto"
+    weight: 700
+    size: 24
+    style: normal
+    
+  # 副标题字体
+  subheading:
+    family: "Roboto"
+    weight: 600
+    size: 20
+    style: normal
+    
+  # 正文字体
+  body:
+    family: "Roboto"
+    weight: 400
+    size: 16
+    style: normal
+    
+  # 说明文字
+  caption:
+    family: "Roboto"
+    weight: 400
+    size: 12
+    style: normal
+    
+  # 按钮字体
+  button:
+    family: "Roboto"
+    weight: 500
+    size: 14
+    style: normal
+
+dimensions:
+  # 内边距
+  padding:
+    xs: 4
+    sm: 8
+    md: 16
+    lg: 24
+    xl: 32
+    
+  # 外边距
+  margin:
+    xs: 4
+    sm: 8
+    md: 16
+    lg: 24
+    xl: 32
+    
+  # 圆角
+  radius:
+    xs: 2
+    sm: 4
+    md: 8
+    lg: 12
+    xl: 16
+    
+  # 边框宽度
+  border_width:
+    thin: 1
+    medium: 2
+    thick: 4
+    
+  # 阴影
+  elevation:
+    low: 2
+    medium: 4
+    high: 8
+    very_high: 16
+
+# 其他配置
+animation:
+  duration_short: 200
+  duration_medium: 300
+  duration_long: 500
+  
+breakpoints:
+  mobile: 480
+  tablet: 768
+  desktop: 1024

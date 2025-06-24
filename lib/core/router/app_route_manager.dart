@@ -1,5 +1,5 @@
 /// 应用路由管理器
-/// 
+///
 /// 统一管理应用的所有路由配置和路由操作
 library;
 
@@ -10,13 +10,13 @@ import 'route_feature.dart';
 import 'middlewares/base_middleware.dart';
 
 /// 应用路由管理器
-/// 
+///
 /// 负责管理应用的所有路由配置、路由组和路由操作
 class AppRouteManager {
   static AppRouteManager? _instance;
-  
+
   AppRouteManager._internal();
-  
+
   /// 单例实例
   static AppRouteManager get instance {
     _instance ??= AppRouteManager._internal();
@@ -25,10 +25,10 @@ class AppRouteManager {
 
   /// 路由配置映射
   final Map<String, RouteConfig> _routes = {};
-  
+
   /// 路由组映射
   final Map<String, RouteGroup> _routeGroups = {};
-  
+
   /// 是否已初始化
   bool _isInitialized = false;
 
@@ -190,13 +190,14 @@ class AppRouteManager {
       }
 
       // 标题匹配
-      if (titlePattern != null && 
+      if (titlePattern != null &&
           (route.title == null || !route.title!.contains(titlePattern))) {
         return false;
       }
 
       // 功能特性类型匹配
-      if (featureType != null && !route.features.any((f) => f.runtimeType == featureType)) {
+      if (featureType != null &&
+          !route.features.any((f) => f.runtimeType == featureType)) {
         return false;
       }
 
@@ -258,7 +259,7 @@ class AppRouteManager {
       for (final route in fullRoutes) {
         removeRoute(route.path);
       }
-      
+
       _routeGroups.remove(name);
       debugPrint('已移除路由组: $name');
     }
@@ -288,75 +289,31 @@ class AppRouteManager {
     );
   }
 
-  /// 获取路由统计信息
-  Map<String, dynamic> getStatistics() {
-    final routeCount = _routes.length;
-    final groupCount = _routeGroups.length;
-    final featureCount = RouteFeatureManager.instance.getAllFeatures().length;
-    final middlewareCount = MiddlewareManager.instance.getAllMiddlewares().length;
-
-    // 统计功能特性使用情况
-    final featureUsage = <String, int>{};
-    for (final route in _routes.values) {
-      for (final feature in route.features) {
-        final featureName = feature.featureName;
-        featureUsage[featureName] = (featureUsage[featureName] ?? 0) + 1;
-      }
-    }
-
-    return {
-      'route_count': routeCount,
-      'group_count': groupCount,
-      'feature_count': featureCount,
-      'middleware_count': middlewareCount,
-      'feature_usage': featureUsage,
-      'is_initialized': _isInitialized,
-    };
-  }
-
   /// 导出路由配置
   Map<String, dynamic> exportConfiguration() {
     return {
-      'routes': _routes.values.map((route) => {
-        'path': route.path,
-        'title': route.title,
-        'features': route.features.map((f) => f.featureName).toList(),
-        'metadata': route.metadata,
-      }).toList(),
-      'route_groups': _routeGroups.values.map((group) => {
-        'name': group.name,
-        'prefix': group.prefix,
-        'description': group.description,
-        'routes_count': group.routes.length,
-      }).toList(),
-      'statistics': getStatistics(),
+      'routes':
+          _routes.values
+              .map(
+                (route) => {
+                  'path': route.path,
+                  'title': route.title,
+                  'features': route.features.map((f) => f.featureName).toList(),
+                  'metadata': route.metadata,
+                },
+              )
+              .toList(),
+      'route_groups':
+          _routeGroups.values
+              .map(
+                (group) => {
+                  'name': group.name,
+                  'prefix': group.prefix,
+                  'description': group.description,
+                  'routes_count': group.routes.length,
+                },
+              )
+              .toList(),
     };
-  }
-
-  /// 打印路由信息
-  void printRouteInfo() {
-    final stats = getStatistics();
-    debugPrint('=== 路由管理器信息 ===');
-    debugPrint('路由总数: ${stats['route_count']}');
-    debugPrint('路由组总数: ${stats['group_count']}');
-    debugPrint('功能特性总数: ${stats['feature_count']}');
-    debugPrint('中间件总数: ${stats['middleware_count']}');
-    debugPrint('初始化状态: ${stats['is_initialized']}');
-    
-    debugPrint('\n=== 路由列表 ===');
-    for (final route in _routes.values) {
-      debugPrint('${route.path} - ${route.title ?? '无标题'} (${route.features.length} 个功能)');
-    }
-    
-    debugPrint('\n=== 路由组列表 ===');
-    for (final group in _routeGroups.values) {
-      debugPrint('${group.name} - ${group.description ?? '无描述'} (${group.routes.length} 个路由)');
-    }
-  }
-
-  @override
-  String toString() {
-    final stats = getStatistics();
-    return 'AppRouteManager(routes: ${stats['route_count']}, groups: ${stats['group_count']}, initialized: ${stats['is_initialized']})';
   }
 }

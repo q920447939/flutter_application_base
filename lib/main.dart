@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'core/app/framework_module_manager.dart';
+import 'core/app/app_init_info.dart';
 
 /// 框架主应用类
 class FrameworkApp extends StatelessWidget {
@@ -62,7 +63,12 @@ class FrameworkHomePage extends StatelessWidget {
 
 void main() async {
   // 使用新的模块化初始化系统
-  await FrameworkModuleManager.initializeAll();
+  final initInfo = AppInitInfo(
+    child: const FrameworkApp(),
+    openDevicePreview: false,
+  );
+
+  await FrameworkModuleManager.initialize(initInfo);
 
   // 运行框架主应用
   //runApp(const FrameworkApp());

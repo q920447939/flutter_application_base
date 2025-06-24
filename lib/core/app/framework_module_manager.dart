@@ -8,9 +8,16 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_application_base/core/app/app_init_info.dart';
 import 'package:flutter_application_base/core/router/app_route_manager.dart';
 import 'framework_module.dart';
 import '../modules/module_registry.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:tdesign_flutter/src/util/log.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 /// 框架模块管理器
 class FrameworkModuleManager {
@@ -40,13 +47,17 @@ class FrameworkModuleManager {
   }
 
   /// 初始化所有模块
-  static Future<void> initializeAll() async {
+  static Future<void> initialize(AppInitInfo initInfo) async {
     // 确保Flutter绑定初始化
     WidgetsFlutterBinding.ensureInitialized();
+    await ScreenUtil.ensureScreenSize();
+    await EasyLocalization.ensureInitialized();
+    Log.setCustomLogPrinter(
+      (level, tag, msg) => print('[$level] $tag ==> $msg'),
+    );
 
     try {
       debugPrint('开始初始化框架模块...');
-      final startTime = DateTime.now();
 
       // 初始化路由管理器
       await AppRouteManager.instance.initialize(
@@ -84,18 +95,41 @@ class FrameworkModuleManager {
         }
       }
 
-      final endTime = DateTime.now();
-      final totalDuration = endTime.difference(startTime);
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          systemNavigationBarColor: Colors.transparent,
+          systemNavigationBarDividerColor: Colors.transparent,
+        ),
+      );
 
-      _initialized = true;
-      debugPrint('框架模块初始化完成，总耗时: ${totalDuration.inMilliseconds}ms');
-      _printInitializationSummary(results);
+      Widget child = EasyLocalization(
+        supportedLocales: [Locale('en', 'US'), Locale('zh')],
+        path: 'assets/translations',
+        fallbackLocale: Locale('zh'),
+        startLocale: Locale('zh'),
+        saveLocale: true,
+        useOnlyLangCode: true, // <-- change the path of the translation files
+        child: initInfo.child,
+      );
+      /* if (initInfo.openDevicePreview) {
+        child = DevicePreview(enabled: true, builder: (context) => child);
+      } */
+      if (initInfo.screenRatio.aspectRatio > -1) {
+        child = AspectRatio(
+          aspectRatio: initInfo.screenRatio.aspectRatio,
+          child: child,
+        );
+      }
+      //强制竖屏
+      await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+      ]).then((_) => runApp(SafeArea(child: child)));
     } catch (e) {
       debugPrint('框架模块初始化失败: $e');
       rethrow;
-    } finally {
-      _initializing = false;
-    }
+    } finally {}
   }
 
   /// 自动注册内置模块
@@ -324,4 +358,57 @@ class DependencyValidationResult {
     required this.isValid,
     required this.errors,
   });
+}
+
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Locale? locale = const Locale('zh');
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final initSmartDialog = FlutterSmartDialog.init();
+    /* double width = ServerConfig().width.toDouble();
+    double height = ServerConfig().height.toDouble();
+    //填入设计稿中设备的屏幕尺寸,单位dp
+    return ScreenUtilInit(
+      designSize: Size(width, height),
+      builder: (context, child) {
+        // 设置文案代理,国际化需要在MaterialApp初始化完成之后才生效,而且需要每次更新context
+        /* TDTheme.setResourceBuilder((context) => delegate..updateContext(context),
+          needAlwaysBuild: true);*/
+        return MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(1.0)),
+          child: MaterialApp.router(
+            /* supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,*/
+            locale: locale,
+            debugShowCheckedModeBanner: false,
+            title: ServerConfig().appName,
+            theme: ThemeData(
+              extensions: [themeData],
+              colorScheme: ColorScheme.light(
+                primary: themeData.brandNormalColor,
+              ),
+            ),
+            routerConfig: router,
+            builder: initSmartDialog,
+          ),
+        );
+      },
+    ); */
+    return Container();
+  }
 }

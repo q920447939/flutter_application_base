@@ -348,18 +348,6 @@ class RemoteConfigManager implements IConfigManager {
   bool get isUpdating => _isUpdating;
 
   @override
-  Map<String, dynamic> getStatistics() {
-    return {
-      'total_configs': _configs.length,
-      'last_update_time': _lastUpdateTime?.toIso8601String(),
-      'is_updating': _isUpdating,
-      'is_initialized': _initialized,
-      'fetch_strategies_count': _fetchStrategies.length,
-      'cache_strategy': _cacheStrategy.name,
-    };
-  }
-
-  @override
   void startPeriodicUpdate({Duration interval = const Duration(minutes: 30)}) {
     stopPeriodicUpdate();
 
