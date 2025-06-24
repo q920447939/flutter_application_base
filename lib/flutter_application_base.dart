@@ -20,14 +20,8 @@ export 'core/router/index.dart';
 // 网络服务
 export 'core/network/index.dart';
 
-// 存储服务
-export 'core/storage/storage_service.dart';
-
 // 权限管理
 export 'core/permissions/index.dart';
-
-// 主题系统
-export 'core/theme/index.dart';
 
 // 配置管理
 export 'core/config/index.dart';

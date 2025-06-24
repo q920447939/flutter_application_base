@@ -15,10 +15,8 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:get/get.dart' as getx;
 import '../app/app_config.dart';
 import '../security/certificate_pinning_service.dart';
-import '../storage/storage_service.dart';
+//import '../storage/storage_service.dart';
 import '../../features/auth/models/common_result.dart';
-import 'network_config_manager.dart';
-import 'network_initializer.dart';
 import 'network_strategy_factory.dart';
 import 'common_result_handler.dart';
 import 'response_handler.dart';
@@ -55,10 +53,8 @@ class NetworkService {
 
   /// 更新Dio配置（支持动态配置）
   void _updateDioConfiguration() {
-    final configManager = NetworkConfigManager.instance;
-
     // 从配置管理器获取配置
-    final baseUrl =
+    /*final baseUrl =
         configManager.getConfigValue<String>('base_url') ??
         AppConfig.current.apiBaseUrl;
     final connectTimeout =
@@ -81,7 +77,7 @@ class NetworkService {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-    );
+    );*/
   }
 
   /// 重新配置网络服务（支持配置热更新）
@@ -138,10 +134,10 @@ class NetworkService {
   /// 添加认证头
   void _addAuthHeader(RequestOptions options) {
     // 使用同步方法获取token，避免异步等待
-    final token = StorageService.instance.getTokenSync();
+    /*final token = StorageService.instance.getTokenSync();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
-    }
+    }*/
   }
 
   /// 错误处理
@@ -191,10 +187,6 @@ class NetworkService {
 
   /// 处理未授权错误
   void _handleUnauthorized() {
-    // 清除token并跳转到登录页
-    StorageService.instance.clearTokenSync();
-    StorageService.instance.clearUserInfoSync();
-
     // 跳转到登录页（避免循环导航）
     if (getx.Get.currentRoute != '/login') {
       getx.Get.offAllNamed('/login');

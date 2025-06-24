@@ -5,7 +5,6 @@ library;
 
 import 'package:flutter/material.dart';
 import '../app/framework_module.dart';
-import '../../features/auth/services/auth_service.dart';
 
 /// 认证模块
 class AuthModule implements FrameworkModule {
@@ -42,9 +41,6 @@ class AuthModule implements FrameworkModule {
   @override
   Future<void> initialize() async {
     debugPrint('开始初始化认证模块...');
-
-    // 初始化认证服务
-    await AuthService.instance.initialize();
 
     debugPrint('认证模块初始化完成');
   }

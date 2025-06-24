@@ -4,9 +4,7 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import '../app/framework_module.dart';
-import '../config/remote_config_manager.dart';
 
 /// 配置模块
 class ConfigModule implements FrameworkModule {
@@ -45,20 +43,6 @@ class ConfigModule implements FrameworkModule {
     debugPrint('开始初始化配置模块...');
 
     try {
-      // 注册配置管理器到依赖注入容器
-      Get.put<RemoteConfigManager>(
-        RemoteConfigManager.instance,
-        permanent: true,
-      );
-
-      // 初始化配置管理器
-      await RemoteConfigManager.instance.initialize();
-
-      // 启动定时更新任务（可选）
-      RemoteConfigManager.instance.startPeriodicUpdate(
-        interval: const Duration(minutes: 30),
-      );
-
       debugPrint('配置模块初始化完成');
     } catch (e) {
       debugPrint('配置模块初始化失败: $e');
@@ -71,14 +55,6 @@ class ConfigModule implements FrameworkModule {
     debugPrint('开始销毁配置模块...');
 
     try {
-      // 销毁配置管理器
-      await RemoteConfigManager.instance.dispose();
-
-      // 从依赖注入容器中移除
-      if (Get.isRegistered<RemoteConfigManager>()) {
-        Get.delete<RemoteConfigManager>();
-      }
-
       debugPrint('配置模块已销毁');
     } catch (e) {
       debugPrint('配置模块销毁失败: $e');

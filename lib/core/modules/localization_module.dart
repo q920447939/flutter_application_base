@@ -5,7 +5,6 @@ library;
 
 import 'package:flutter/material.dart';
 import '../app/framework_module.dart';
-import '../localization/localization_service.dart';
 
 /// 国际化模块
 class LocalizationModule implements FrameworkModule {
@@ -44,7 +43,7 @@ class LocalizationModule implements FrameworkModule {
     debugPrint('开始初始化国际化模块...');
 
     // 初始化国际化服务
-    await LocalizationService.instance.initialize();
+    //await LocalizationService.instance.initialize();
 
     debugPrint('国际化模块初始化完成');
   }

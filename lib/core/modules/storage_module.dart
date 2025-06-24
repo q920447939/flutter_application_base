@@ -6,7 +6,6 @@ library;
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../app/framework_module.dart';
-import '../storage/storage_service.dart';
 
 /// 存储模块
 class StorageModule implements FrameworkModule {
@@ -48,7 +47,7 @@ class StorageModule implements FrameworkModule {
     await _initializeHive();
 
     // 初始化存储服务
-    await StorageService.instance.initialize();
+    //await StorageService.instance.initialize();
 
     debugPrint('存储模块初始化完成');
   }

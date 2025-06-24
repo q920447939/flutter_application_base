@@ -3,13 +3,6 @@ import 'package:flutter/foundation.dart';
 // ========== 模型层 ==========
 export 'models/member_models.dart';
 
-// ========== 服务层 ==========
-export 'services/member_service.dart';
-export 'services/member_cache_service.dart';
-
-// ========== 控制器层 ==========
-export 'controllers/member_controller.dart';
-
 // ========== 验证器层 ==========
 export 'validators/member_validators.dart';
 

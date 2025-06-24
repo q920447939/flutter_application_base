@@ -12,7 +12,6 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../app/app_config.dart';
-import '../storage/storage_service.dart';
 
 /// 网络配置类型枚举
 enum NetworkConfigType {
@@ -262,14 +261,14 @@ class NetworkConfigManager extends GetxController {
   /// 加载缓存的配置
   Future<void> _loadCachedConfig() async {
     try {
-      final configJson = StorageService.instance.getStringSync(
+      /*      final configJson = StorageService.instance.getStringSync(
         _currentConfigKey,
       );
       if (configJson != null && configJson.isNotEmpty) {
         final configData = jsonDecode(configJson);
         _currentConfig.value = NetworkConfigSet.fromJson(configData);
         debugPrint('已加载缓存的网络配置，版本: ${_currentConfig.value?.version}');
-      }
+      }*/
     } catch (e) {
       debugPrint('加载缓存配置失败: $e');
     }
@@ -284,8 +283,6 @@ class NetworkConfigManager extends GetxController {
       createdAt: DateTime.now(),
     );
 
-    // 保存默认配置到缓存
-    await _saveConfigToCache(_currentConfig.value!);
     debugPrint('已加载默认网络配置');
   }
 
@@ -393,117 +390,9 @@ class NetworkConfigManager extends GetxController {
     ];
   }
 
-  /// 保存配置到缓存
-  Future<void> _saveConfigToCache(NetworkConfigSet config) async {
-    try {
-      final configJson = jsonEncode(config.toJson());
-      await StorageService.instance.setString(_currentConfigKey, configJson);
-
-      // 同时保存到版本化缓存
-      final cacheKey = '$_cacheKeyPrefix${config.version}';
-      _configCache[config.version] = config;
-      await StorageService.instance.setString(cacheKey, configJson);
-    } catch (e) {
-      debugPrint('保存配置到缓存失败: $e');
-    }
-  }
-
   /// 获取配置值
   T? getConfigValue<T>(String key, {T? defaultValue}) {
     return _currentConfig.value?.getValue<T>(key, defaultValue: defaultValue);
-  }
-
-  /// 更新配置项
-  Future<bool> updateConfigItem(String key, dynamic value) async {
-    try {
-      final currentConfig = _currentConfig.value;
-      if (currentConfig == null) return false;
-
-      final items = List<NetworkConfigItem>.from(currentConfig.items);
-      final itemIndex = items.indexWhere((item) => item.key == key);
-
-      if (itemIndex != -1) {
-        // 更新现有配置项
-        items[itemIndex] = items[itemIndex].copyWith(value: value);
-      } else {
-        // 添加新配置项
-        items.add(
-          NetworkConfigItem(
-            key: key,
-            value: value,
-            type: NetworkConfigType.runtime,
-            priority: NetworkConfigPriority.medium,
-            description: '运行时配置项',
-          ),
-        );
-      }
-
-      // 创建新的配置集合
-      final newConfig = NetworkConfigSet(
-        version: _generateNewVersion(currentConfig.version),
-        items: items,
-        createdAt: DateTime.now(),
-      );
-
-      _currentConfig.value = newConfig;
-      await _saveConfigToCache(newConfig);
-
-      debugPrint('配置项更新成功: $key = $value');
-      return true;
-    } catch (e) {
-      _lastError.value = '更新配置项失败: $e';
-      debugPrint('更新配置项失败: $e');
-      return false;
-    }
-  }
-
-  /// 批量更新配置项
-  Future<bool> updateConfigItems(Map<String, dynamic> updates) async {
-    try {
-      final currentConfig = _currentConfig.value;
-      if (currentConfig == null) return false;
-
-      final items = List<NetworkConfigItem>.from(currentConfig.items);
-
-      for (final entry in updates.entries) {
-        final key = entry.key;
-        final value = entry.value;
-        final itemIndex = items.indexWhere((item) => item.key == key);
-
-        if (itemIndex != -1) {
-          // 更新现有配置项
-          items[itemIndex] = items[itemIndex].copyWith(value: value);
-        } else {
-          // 添加新配置项
-          items.add(
-            NetworkConfigItem(
-              key: key,
-              value: value,
-              type: NetworkConfigType.runtime,
-              priority: NetworkConfigPriority.medium,
-              description: '运行时配置项',
-            ),
-          );
-        }
-      }
-
-      // 创建新的配置集合
-      final newConfig = NetworkConfigSet(
-        version: _generateNewVersion(currentConfig.version),
-        items: items,
-        createdAt: DateTime.now(),
-      );
-
-      _currentConfig.value = newConfig;
-      await _saveConfigToCache(newConfig);
-
-      debugPrint('批量配置更新成功，共更新 ${updates.length} 项');
-      return true;
-    } catch (e) {
-      _lastError.value = '批量更新配置失败: $e';
-      debugPrint('批量更新配置失败: $e');
-      return false;
-    }
   }
 
   /// 重置为默认配置
@@ -578,33 +467,6 @@ class NetworkConfigManager extends GetxController {
       debugPrint('缓存清理完成');
     } catch (e) {
       debugPrint('缓存清理失败: $e');
-    }
-  }
-
-  /// 导出配置
-  Map<String, dynamic> exportConfig() {
-    return _currentConfig.value?.toJson() ?? {};
-  }
-
-  /// 导入配置
-  Future<bool> importConfig(Map<String, dynamic> configData) async {
-    try {
-      final config = NetworkConfigSet.fromJson(configData);
-
-      if (!validateConfig(config)) {
-        _lastError.value = '导入的配置无效';
-        return false;
-      }
-
-      _currentConfig.value = config;
-      await _saveConfigToCache(config);
-
-      debugPrint('配置导入成功，版本: ${config.version}');
-      return true;
-    } catch (e) {
-      _lastError.value = '导入配置失败: $e';
-      debugPrint('导入配置失败: $e');
-      return false;
     }
   }
 

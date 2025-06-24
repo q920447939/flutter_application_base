@@ -6,9 +6,7 @@ library;
 import '../app/framework_module.dart';
 import '../app/framework_module_manager.dart';
 import 'storage_module.dart';
-import 'network_module.dart';
 import 'permission_module.dart';
-import 'theme_module.dart';
 import 'auth_module.dart';
 import 'router_module.dart';
 import 'security_module.dart';
@@ -22,9 +20,7 @@ class ModuleRegistry {
     // 按优先级顺序注册
     StorageModule(), // 优先级 5 - 最高优先级
     YamlModule(), // 优先级 8 - YAML 处理模块
-    NetworkModule(), // 优先级 10
     ConfigModule(), // 优先级 12 - 配置模块
-    ThemeModule(), // 优先级 15
     PermissionModule(), // 优先级 20
     SecurityModule(), // 优先级 25
     LocalizationModule(), // 优先级 30

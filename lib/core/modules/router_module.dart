@@ -6,7 +6,6 @@ library;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../app/framework_module.dart';
-import '../router/dynamic_route_service.dart';
 
 /// 路由模块
 class RouterModule implements FrameworkModule {
@@ -43,12 +42,6 @@ class RouterModule implements FrameworkModule {
   @override
   Future<void> initialize() async {
     debugPrint('开始初始化路由模块...');
-
-    // 注册动态路由服务
-    Get.put<DynamicRouteService>(DynamicRouteService());
-
-    // 初始化动态路由服务并获取配置
-    await DynamicRouteService.instance.fetchRouteConfig();
 
     debugPrint('路由模块初始化完成');
   }

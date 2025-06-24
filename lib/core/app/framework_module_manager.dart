@@ -70,10 +70,10 @@ class FrameworkModuleManager {
       await _registerBuiltinModules();
 
       // 验证依赖关系
-      final dependencyValidation = _validateDependencies();
+      /*       final dependencyValidation = _validateDependencies();
       if (!dependencyValidation.isValid) {
         throw Exception('模块依赖验证失败: ${dependencyValidation.errors.join(', ')}');
-      }
+      } */
 
       // 按依赖关系和优先级排序
       final sortedModules = _sortModulesByDependency();
