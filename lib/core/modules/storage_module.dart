@@ -4,7 +4,6 @@
 library;
 
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import '../app/framework_module.dart';
 
 /// 存储模块
@@ -56,16 +55,11 @@ class StorageModule implements FrameworkModule {
   Future<void> dispose() async {
     debugPrint('开始销毁存储模块...');
 
-    // 关闭所有Hive boxes
-    await Hive.close();
-
     debugPrint('存储模块已销毁');
   }
 
   /// 初始化Hive数据库
   Future<void> _initializeHive() async {
-    await Hive.initFlutter();
-
     // 注册适配器
     // 这里可以注册自定义的Hive适配器
     // Hive.registerAdapter(UserAdapter());
