@@ -236,33 +236,6 @@ class StorageService implements ISyncStorage {
     return await _secureStorage.containsKey(key: key);
   }
 
-  // ==================== Hive 操作 ====================
-
-  /// Hive存储数据
-  Future<void> setHiveData(String key, dynamic value) async {
-    await _hiveBox.put(key, value);
-  }
-
-  /// Hive获取数据
-  T? getHiveData<T>(String key) {
-    return _hiveBox.get(key) as T?;
-  }
-
-  /// Hive删除数据
-  Future<void> removeHiveData(String key) async {
-    await _hiveBox.delete(key);
-  }
-
-  /// Hive清除所有数据
-  Future<void> clearHiveData() async {
-    await _hiveBox.clear();
-  }
-
-  /// Hive检查键是否存在
-  bool containsHiveKey(String key) {
-    return _hiveBox.containsKey(key);
-  }
-
   // ==================== 便捷方法 ====================
 
   /// 存储用户Token
