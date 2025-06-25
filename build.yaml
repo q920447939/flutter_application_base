@@ -9,3 +9,11 @@ targets:
           field_rename: snake
           # 生成的代码将包含空值检查
           include_if_null: false
+
+      # Drift 代码生成器配置
+      drift_dev:
+        options:
+          # 生成连接类
+          generate_connect_constructor: true
+          # 使用更严格的类型检查
+          apply_converters_on_variables: true
