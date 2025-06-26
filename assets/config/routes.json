@@ -1,0 +1,162 @@
+{
+  "version": "1.0.0",
+  "description": "动态路由配置文件",
+  "routes": [
+    {
+      "path": "/promotion",
+      "name": "promotion",
+      "pageClass": "WebViewPage",
+      "requiresAuth": false,
+      "hasBottomNav": false,
+      "metadata": {
+        "url": "https://example.com/promotion",
+        "title": "促销活动",
+        "category": "marketing"
+      }
+    },
+    {
+      "path": "/help",
+      "name": "help",
+      "pageClass": "WebViewPage",
+      "requiresAuth": false,
+      "hasBottomNav": false,
+      "metadata": {
+        "url": "https://example.com/help",
+        "title": "帮助中心",
+        "category": "support"
+      },
+      "children": [
+        {
+          "path": "faq",
+          "name": "help-faq",
+          "pageClass": "WebViewPage",
+          "metadata": {
+            "url": "https://example.com/help/faq",
+            "title": "常见问题"
+          }
+        },
+        {
+          "path": "contact",
+          "name": "help-contact",
+          "pageClass": "ContactPage",
+          "metadata": {
+            "title": "联系我们"
+          }
+        }
+      ]
+    },
+    {
+      "path": "/tools",
+      "name": "tools",
+      "pageClass": "ToolsHomePage",
+      "requiresAuth": true,
+      "hasBottomNav": false,
+      "metadata": {
+        "title": "工具箱",
+        "category": "utility"
+      },
+      "children": [
+        {
+          "path": "calculator",
+          "name": "tools-calculator",
+          "pageClass": "CalculatorPage",
+          "metadata": {
+            "title": "计算器"
+          }
+        },
+        {
+          "path": "qr-scanner",
+          "name": "tools-qr-scanner",
+          "pageClass": "QRScannerPage",
+          "metadata": {
+            "title": "二维码扫描"
+          }
+        },
+        {
+          "path": "image-editor",
+          "name": "tools-image-editor",
+          "pageClass": "ImageEditorPage",
+          "metadata": {
+            "title": "图片编辑器"
+          }
+        }
+      ]
+    },
+    {
+      "path": "/games",
+      "name": "games",
+      "pageClass": "GamesHomePage",
+      "requiresAuth": false,
+      "hasBottomNav": false,
+      "metadata": {
+        "title": "小游戏",
+        "category": "entertainment"
+      },
+      "children": [
+        {
+          "path": "puzzle",
+          "name": "games-puzzle",
+          "pageClass": "PuzzleGamePage",
+          "metadata": {
+            "title": "拼图游戏"
+          }
+        },
+        {
+          "path": "memory",
+          "name": "games-memory",
+          "pageClass": "MemoryGamePage",
+          "metadata": {
+            "title": "记忆游戏"
+          }
+        }
+      ]
+    }
+  ],
+  "pageBuilders": [
+    {
+      "pageClass": "WebViewPage",
+      "description": "通用WebView页面",
+      "parameters": ["url", "title"]
+    },
+    {
+      "pageClass": "ContactPage",
+      "description": "联系我们页面",
+      "parameters": ["title"]
+    },
+    {
+      "pageClass": "ToolsHomePage",
+      "description": "工具箱首页",
+      "parameters": ["title"]
+    },
+    {
+      "pageClass": "CalculatorPage",
+      "description": "计算器页面",
+      "parameters": ["title"]
+    },
+    {
+      "pageClass": "QRScannerPage",
+      "description": "二维码扫描页面",
+      "parameters": ["title"]
+    },
+    {
+      "pageClass": "ImageEditorPage",
+      "description": "图片编辑器页面",
+      "parameters": ["title"]
+    },
+    {
+      "pageClass": "GamesHomePage",
+      "description": "游戏首页",
+      "parameters": ["title"]
+    },
+    {
+      "pageClass": "PuzzleGamePage",
+      "description": "拼图游戏页面",
+      "parameters": ["title"]
+    },
+    {
+      "pageClass": "MemoryGamePage",
+      "description": "记忆游戏页面",
+      "parameters": ["title"]
+    }
+  ]
+}
