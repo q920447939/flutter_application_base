@@ -17,7 +17,6 @@ import '../app/app_config.dart';
 import '../security/certificate_pinning_service.dart';
 //import '../storage/storage_service.dart';
 import '../../features/auth/models/common_result.dart';
-import 'network_strategy_factory.dart';
 import 'common_result_handler.dart';
 import 'response_handler.dart';
 
@@ -245,14 +244,6 @@ class NetworkService {
     Future<Response<T>> Function() request,
     RequestOptions options,
   ) async {
-    // 如果策略工厂已初始化，应用策略
-    if (NetworkStrategyFactory.instance.isInitialized) {
-      return await NetworkStrategyFactory.instance.applyStrategies<T>(
-        options,
-        request,
-      );
-    }
-
     // 否则直接执行请求
     return await request();
   }

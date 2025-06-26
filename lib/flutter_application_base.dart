@@ -14,9 +14,6 @@ export 'core/modules/module_registry.dart';
 // 基础页面类
 export 'core/base/index.dart';
 
-// 路由系统
-export 'core/router/index.dart';
-
 // 网络服务
 export 'core/network/index.dart';
 

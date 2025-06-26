@@ -4,7 +4,6 @@
 library;
 
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';

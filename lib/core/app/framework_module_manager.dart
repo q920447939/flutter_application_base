@@ -10,7 +10,9 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_base/core/app/app_init_info.dart';
-import 'package:flutter_application_base/core/router/app_route_manager.dart';
+import 'package:flutter_application_base/core/config/go_router_config.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../config/server_config.dart';
 import 'framework_module.dart';
 import '../modules/module_registry.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -18,6 +20,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:tdesign_flutter/src/util/log.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:tdesign_flutter/tdesign_flutter.dart';
+
+late SharedPreferences SP;
 
 /// 框架模块管理器
 class FrameworkModuleManager {
@@ -55,16 +60,10 @@ class FrameworkModuleManager {
     Log.setCustomLogPrinter(
       (level, tag, msg) => print('[$level] $tag ==> $msg'),
     );
+    SP = await SharedPreferences.getInstance();
 
     try {
       debugPrint('开始初始化框架模块...');
-
-      // 初始化路由管理器
-      await AppRouteManager.instance.initialize(
-        routes: [],
-        routeGroups: [],
-        validateRoutes: true,
-      );
 
       // 自动注册内置模块
       await _registerBuiltinModules();
@@ -121,11 +120,49 @@ class FrameworkModuleManager {
           child: child,
         );
       }
+      final initSmartDialog = FlutterSmartDialog.init();
+      double width = ServerConfig().width.toDouble();
+      double height = ServerConfig().height.toDouble();
+      var themeData = TDThemeData.defaultData();
       //强制竖屏
       await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown,
-      ]).then((_) => runApp(SafeArea(child: child)));
+      ]).then(
+        (_) => runApp(
+          SafeArea(
+            child: //填入设计稿中设备的屏幕尺寸,单位dp
+                ScreenUtilInit(
+              designSize: Size(width, height),
+              builder: (context, child) {
+                // 设置文案代理,国际化需要在MaterialApp初始化完成之后才生效,而且需要每次更新context
+                /* TDTheme.setResourceBuilder((context) => delegate..updateContext(context),
+          needAlwaysBuild: true);*/
+                return MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: TextScaler.linear(1.0)),
+                  child: MaterialApp.router(
+                    /* supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,*/
+                    //locale: locale,
+                    debugShowCheckedModeBanner: false,
+                    title: ServerConfig().appName,
+                    theme: ThemeData(
+                      extensions: [themeData],
+                      colorScheme: ColorScheme.light(
+                        primary: themeData.brandNormalColor,
+                      ),
+                    ),
+                    routerConfig: router,
+                    builder: initSmartDialog,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
     } catch (e) {
       debugPrint('框架模块初始化失败: $e');
       rethrow;
