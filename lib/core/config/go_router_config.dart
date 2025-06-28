@@ -1,5 +1,6 @@
 // Create a GoRouter with all your app routes
 import 'package:flutter/material.dart';
+import 'package:flutter_application_base/core/analytics/observers/transparent_analytics_observer.dart';
 import 'package:flutter_application_base/ui/components/bottom_bar/scaffold_with_navbar.dart';
 import 'package:flutter_application_base/utils/member_helper.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
@@ -61,7 +62,7 @@ final router = GoRouter(
 
     return fullPath;
   },
-  observers: [FlutterSmartDialog.observer],
+  observers: [FlutterSmartDialog.observer, AnalyticsObserver()],
   errorBuilder: (c, s) => ErrorRoute(error: s.error!).build(c, s),
 );
 
