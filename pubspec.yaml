@@ -89,7 +89,7 @@ dependencies:
   shared_preferences: ^2.2.2 #共享缓存
   skeletonizer: ^1.0.0  #骨架屏
   form_field_validator: ^1.1.0
-
+  stack_trace: ^1.12.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

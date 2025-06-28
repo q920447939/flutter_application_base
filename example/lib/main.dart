@@ -1,12 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_base/core/app/app_init_info.dart';
 import 'package:flutter_application_base/flutter_application_base.dart';
+import 'package:flutter_application_base/ui/page/base/home/home_index_page.dart';
 import 'pages/feature_navigator.dart';
+import 'package:go_router/go_router.dart';
 
 Future<void> main() async {
-  await FrameworkModuleManager.initialize(AppInitInfo(child: const MyApp()));
-
-  runApp(const MyApp());
+  await FrameworkModuleManager.initialize(
+    AppInitInfo(
+      child: const MyApp(),
+      appRouterConfig: AppRouterConfig(
+        defaultRoutes: [
+          GoRoute(
+            path: '/',
+            name: 'home',
+            builder: (context, state) {
+              return HomeIndexPage();
+            },
+          ),
+          GoRoute(
+            path: '/index2',
+            name: 'index2',
+            builder: (context, state) {
+              return HomeInde2Page();
+            },
+          ),
+          GoRoute(
+            path: '/index3',
+            name: 'index3',
+            builder: (context, state) {
+              return HomeInde3Page();
+            },
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

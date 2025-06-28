@@ -7,7 +7,6 @@ import '../app/framework_module.dart';
 import '../app/framework_module_manager.dart';
 import 'permission_module.dart';
 import 'auth_module.dart';
-import 'router_module.dart';
 import 'security_module.dart';
 import 'localization_module.dart';
 import 'config_module.dart';
@@ -22,7 +21,6 @@ class ModuleRegistry {
     SecurityModule(), // 优先级 25
     LocalizationModule(), // 优先级 30
     AuthModule(), // 优先级 35
-    RouterModule(), // 优先级 40
   ];
 
   /// 注册所有核心模块

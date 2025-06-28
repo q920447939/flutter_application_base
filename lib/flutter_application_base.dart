@@ -2,7 +2,7 @@
 ///
 /// 这是 Flutter 应用基础框架的主要导出文件
 /// 提供了完整的模块化架构和核心功能
-library flutter_application_base;
+library;
 
 // 核心应用模块
 export 'core/app/framework_module_manager.dart';

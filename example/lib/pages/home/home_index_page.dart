@@ -27,23 +27,11 @@ class _HomeIndexPageState extends State<HomeIndexPage> {
               shape: TDButtonShape.rectangle,
               theme: TDButtonTheme.primary,
             ),
-            TDDivider(),
             TDButton(
               onTap: () {
                 context.push('/index3');
               },
               text: '去index3',
-              size: TDButtonSize.large,
-              type: TDButtonType.fill,
-              shape: TDButtonShape.rectangle,
-              theme: TDButtonTheme.primary,
-            ),
-            TDDivider(),
-            TDButton(
-              onTap: () {
-                context.push('/core/network-error');
-              },
-              text: '去network-error',
               size: TDButtonSize.large,
               type: TDButtonType.fill,
               shape: TDButtonShape.rectangle,

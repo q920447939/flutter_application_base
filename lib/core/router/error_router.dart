@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../ui/page/error_screen.dart';
+import 'page/error_screen.dart';
 
 class ErrorRoute extends GoRouteData {
   ErrorRoute({required this.error});

@@ -11,7 +11,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_base/core/app/app_init_info.dart';
 import 'package:flutter_application_base/core/config/go_router_config.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:stack_trace/stack_trace.dart';
 import '../config/server_config.dart';
 import 'framework_module.dart';
 import '../modules/module_registry.dart';
@@ -51,12 +53,19 @@ class FrameworkModuleManager {
     }
   }
 
-  /// 初始化所有模块
   static Future<void> initialize(AppInitInfo initInfo) async {
+    Chain.capture(() {
+      _initialize(initInfo);
+    });
+  }
+
+  /// 初始化所有模块
+  static Future<void> _initialize(AppInitInfo initInfo) async {
     // 确保Flutter绑定初始化
-    WidgetsFlutterBinding.ensureInitialized();
+    //WidgetsFlutterBinding.ensureInitialized();
     await ScreenUtil.ensureScreenSize();
     await EasyLocalization.ensureInitialized();
+    await dotenv.load();
     Log.setCustomLogPrinter(
       (level, tag, msg) => print('[$level] $tag ==> $msg'),
     );
@@ -154,7 +163,9 @@ class FrameworkModuleManager {
                         primary: themeData.brandNormalColor,
                       ),
                     ),
-                    routerConfig: router,
+                    routerConfig: GoRouterConfig().getRouter(
+                      initInfo.appRouterConfig,
+                    ),
                     builder: initSmartDialog,
                   ),
                 );

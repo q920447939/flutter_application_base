@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_application_base/core/router/has_bottom_navigator/shell_default_router.dart';
 import 'package:flutter_application_base/model/app_config/navigator/app_navigator_config_model.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';

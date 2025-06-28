@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:go_router/go_router.dart';
 
 import '../permissions/platform_detector.dart';
 
@@ -6,12 +7,19 @@ class AppInitInfo {
   final ScreenRatio screenRatio;
   final Widget child;
   final bool openDevicePreview;
+  final AppRouterConfig appRouterConfig;
 
   AppInitInfo({
     required this.child,
+    required this.appRouterConfig,
     ScreenRatio? screenRatio,
     this.openDevicePreview = false,
-  }) : screenRatio = screenRatio ?? ScreenRatio();
+  }) : screenRatio = screenRatio ?? ScreenRatio() {
+    if (appRouterConfig.bottomNavRoutes.isEmpty &&
+        appRouterConfig.defaultRoutes.isEmpty) {
+      throw Exception('路由配置不能为空');
+    }
+  }
 }
 
 class ScreenRatio {
@@ -32,4 +40,14 @@ class ScreenRatio {
       return -1.0;
     }
   }
+}
+
+class AppRouterConfig {
+  final List<RouteBase> bottomNavRoutes;
+  final List<RouteBase> defaultRoutes;
+
+  AppRouterConfig({
+    this.bottomNavRoutes = const [],
+    required this.defaultRoutes,
+  });
 }
