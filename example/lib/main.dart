@@ -1,7 +1,7 @@
+import 'package:example/pages/home/home_index_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_base/core/app/app_init_info.dart';
 import 'package:flutter_application_base/flutter_application_base.dart';
-import 'package:flutter_application_base/ui/page/base/home/home_index_page.dart';
 import 'pages/feature_navigator.dart';
 import 'package:go_router/go_router.dart';
 

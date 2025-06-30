@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_base/core/analytics/observers/transparent_analytics_observer.dart';
 import 'package:flutter_application_base/core/app/app_init_info.dart';
 import 'package:flutter_application_base/ui/components/bottom_bar/scaffold_with_navbar.dart';
-import 'package:flutter_application_base/ui/page/base/home/home_index_page.dart';
 import 'package:flutter_application_base/utils/member_helper.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:go_router/go_router.dart';
