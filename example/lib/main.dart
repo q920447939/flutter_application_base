@@ -1,41 +1,132 @@
+import 'dart:async';
+import 'dart:ui';
 import 'package:example/pages/home/home_index_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_base/core/app/app_init_info.dart';
 import 'package:flutter_application_base/flutter_application_base.dart';
-import 'pages/feature_navigator.dart';
+import 'pages/test/captcha_test_page.dart';
+import 'pages/test/exception_test_page.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 
 Future<void> main() async {
-  await FrameworkModuleManager.initialize(
-    AppInitInfo(
-      child: const MyApp(),
-      appRouterConfig: AppRouterConfig(
-        defaultRoutes: [
-          GoRoute(
-            path: '/',
-            name: 'home',
+  // 使用 runZonedGuarded 包装整个应用
+  runZonedGuarded<Future<void>>(
+    () async {
+      // 确保 Flutter 绑定初始化
+      WidgetsFlutterBinding.ensureInitialized();
+
+      // 设置 Flutter 框架异常处理器
+      FlutterError.onError = (FlutterErrorDetails details) {
+        print('Flutter框架异常：${details.exception}');
+        print('堆栈跟踪：${details.stack}');
+        _handleGlobalError(
+          details.exception,
+          details.stack ?? StackTrace.current,
+        );
+      };
+
+      // 设置平台异常处理器（Flutter 3.3+）
+      PlatformDispatcher.instance.onError = (error, stack) {
+        print('平台异常：$error');
+        print('堆栈跟踪：$stack');
+        _handleGlobalError(error, stack);
+        return true; // 表示异常已处理
+      };
+
+      // 初始化框架模块
+      await FrameworkModuleManager.initialize(
+        AppInitInfo(
+          child: const MyApp(),
+          appRouterConfig: AppRouterConfig(defaultRoutes: _buildRoute()),
+        ),
+      );
+    },
+    (Object error, StackTrace stack) {
+      // 全局异步异常处理
+      print('runZonedGuarded捕获异常：$error\n$stack');
+      _handleGlobalError(error, stack);
+    },
+  );
+}
+
+List<RouteBase> _buildRoute() {
+  var routeList =
+      router_list.expand((e) {
+        return e.items.map((e1) {
+          return GoRoute(
+            path: e1.page,
+            name: e1.title,
             builder: (context, state) {
-              return HomeIndexPage();
+              return e1.targetPage;
             },
-          ),
-          GoRoute(
-            path: '/index2',
-            name: 'index2',
-            builder: (context, state) {
-              return HomeInde2Page();
-            },
-          ),
-          GoRoute(
-            path: '/index3',
-            name: 'index3',
-            builder: (context, state) {
-              return HomeInde3Page();
-            },
-          ),
-        ],
-      ),
+          );
+        }).toList();
+      }).toList();
+  routeList.add(
+    GoRoute(
+      path: '/',
+      name: 'home',
+      builder: (context, state) {
+        return HomeIndexPage();
+      },
     ),
   );
+  return routeList;
+}
+
+/// 处理全局错误
+void _handleGlobalError(Object error, StackTrace stack) {
+  // 实现全局错误处理逻辑
+  // 1. 记录错误日志
+  debugPrint('全局错误：$error');
+  debugPrint('堆栈跟踪：$stack');
+
+  // 2. 可以在这里添加错误报告逻辑
+  // 例如发送到错误监控服务
+
+  // 3. 显示用户友好的错误提示（需要确保应用已初始化）
+  try {
+    SmartDialog.show(
+      builder:
+          (_) => Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.red.shade100,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.red.shade300),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.error, color: Colors.red, size: 32),
+                const SizedBox(height: 8),
+                const Text(
+                  '应用发生错误',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text('请重启应用或联系技术支持'),
+                const SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+    );
+  } catch (e) {
+    // 如果 SmartDialog 不可用，使用系统级错误处理
+    debugPrint('无法显示错误对话框：$e');
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -145,14 +236,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const FeatureNavigator(),
-                  ),
-                );
-              },
+              onPressed: () {},
               icon: const Icon(Icons.explore),
               label: const Text('功能测试导航'),
             ),

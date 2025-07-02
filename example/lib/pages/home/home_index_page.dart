@@ -3,6 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tdesign_flutter/tdesign_flutter.dart';
 
+import '../test/captcha_test_page.dart';
+
+List<CollapseDataItem> router_list = [
+  CollapseDataItem(
+    headerValue: 'go_route路由测试',
+    items: [
+      Item(title: '去index2', page: '/index2', targetPage: HomeInde2Page()),
+      Item(title: '去index3', page: '/index3', targetPage: HomeInde3Page()),
+    ],
+  ),
+  CollapseDataItem(
+    headerValue: '用户认证',
+    items: [
+      Item(title: '验证码服务', page: '/captcha', targetPage: CaptchaTestPage()),
+    ],
+  ),
+];
+
 class HomeIndexPage extends StatefulWidget {
   const HomeIndexPage({super.key});
 
@@ -11,22 +29,6 @@ class HomeIndexPage extends StatefulWidget {
 }
 
 class _HomeIndexPageState extends State<HomeIndexPage> {
-  List<CollapseDataItem> list = [
-    CollapseDataItem(
-      headerValue: 'go_route路由测试',
-      items: [
-        Item(title: '去index2', page: '/index2'),
-        Item(title: '去index3', page: '/index3'),
-      ],
-    ),
-    CollapseDataItem(
-      headerValue: 'ces',
-      items: [
-        Item(title: '去index2', page: '/index2'),
-        Item(title: '去index3', page: '/index3'),
-      ],
-    ),
-  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(body: Column(children: [_buildBasicCollapse(context)]));
@@ -37,11 +39,11 @@ class _HomeIndexPageState extends State<HomeIndexPage> {
       style: TDCollapseStyle.block,
       expansionCallback: (int index, bool isExpanded) {
         setState(() {
-          list[index].isExpanded = !isExpanded;
+          router_list[index].isExpanded = !isExpanded;
         });
       },
       children:
-          list.map((CollapseDataItem item) {
+          router_list.map((CollapseDataItem item) {
             return TDCollapsePanel(
               headerBuilder: (BuildContext context, bool isExpanded) {
                 return Text(item.headerValue);
@@ -171,5 +173,6 @@ class CollapseDataItem {
 class Item {
   final String title;
   final String page;
-  Item({required this.title, required this.page});
+  final Widget targetPage;
+  Item({required this.title, required this.page, required this.targetPage});
 }

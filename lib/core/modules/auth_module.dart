@@ -4,7 +4,9 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../app/framework_module.dart';
+import '../../features/auth/services/captcha_service.dart';
 
 /// 认证模块
 class AuthModule implements FrameworkModule {
@@ -42,13 +44,32 @@ class AuthModule implements FrameworkModule {
   Future<void> initialize() async {
     debugPrint('开始初始化认证模块...');
 
+    try {
+      // 注册验证码服务
+      final captchaService = CaptchaService();
+      Get.put<CaptchaService>(captchaService, permanent: true);
+      debugPrint('验证码服务已注册');
+    } catch (e) {
+      debugPrint('验证码服务注册失败: $e');
+    }
+
     debugPrint('认证模块初始化完成');
   }
 
   @override
   Future<void> dispose() async {
     debugPrint('开始销毁认证模块...');
-    // 清理认证相关资源
+
+    try {
+      // 清理验证码服务
+      if (Get.isRegistered<CaptchaService>()) {
+        Get.delete<CaptchaService>();
+        debugPrint('验证码服务已清理');
+      }
+    } catch (e) {
+      debugPrint('验证码服务清理失败: $e');
+    }
+
     debugPrint('认证模块已销毁');
   }
 }

@@ -11,6 +11,7 @@ library;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_application_base/core/config/server_config.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:get/get.dart' as getx;
 import '../app/app_config.dart';
@@ -77,6 +78,14 @@ class NetworkService {
         'Accept': 'application/json',
       },
     );*/
+    _dio.options = BaseOptions(
+      baseUrl: "http://${ServerConfig().host}:${ServerConfig().port}/musk",
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'tenant-id': ServerConfig().tenantId,
+      },
+    );
   }
 
   /// 重新配置网络服务（支持配置热更新）

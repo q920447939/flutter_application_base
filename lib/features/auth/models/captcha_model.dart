@@ -72,7 +72,7 @@ class CaptchaInfo {
   }
 
   /// 获取图片数据URL（用于显示）
-  String get imageDataUrl => 'data:image/png;base64,$imageBase64';
+  String get imageDataUrl => imageBase64;
 
   /// 复制并更新部分字段
   CaptchaInfo copyWith({
