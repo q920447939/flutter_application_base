@@ -37,8 +37,7 @@ dependencies:
 
   # 核心框架依赖
   # 路由管理
-  go_router: ^15.2.4
-
+  go_router: ^16.0.0
   # 状态管理与依赖注入
   get: ^4.6.6
 
